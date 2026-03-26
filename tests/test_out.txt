@@ -1,0 +1,12 @@
+PASS tests/joinRequest.test.js
+  Study Group Join Requests & Auto-enrollment
+    √ should allow student to auto-join PUBLIC group (47 ms)
+    √ should create PENDING request for PRIVATE group (24 ms)
+    √ admin should be able to approve request and trigger auto-enroll (57 ms)
+    √ student should access course after approval (17 ms)
+
+Test Suites: 1 passed, 1 total
+Tests:       4 passed, 4 total
+Snapshots:   0 total
+Time:        1.733 s, estimated 2 s
+Ran all test suites matching tests/joinRequest.test.js.
