@@ -16,7 +16,7 @@ export function SocketProvider({ children }) {
             return;
         }
 
-        const newSocket = io('http://localhost:3000', {
+        const newSocket = io('http://localhost:3001', {
             transports: ['websocket', 'polling']
         });
 

@@ -28,6 +28,27 @@ const QUIZ_FIELDS = [
     ], default: 'PRACTICE' }
 ]
 
+const CHAPTER_FIELDS = [
+  { name: 'title',       label: 'Tiêu đề Chương', type: 'text',     required: true, placeholder: 'VD: Chương 1: Cơ bản' },
+  { name: 'description', label: 'Mô tả',          type: 'textarea', placeholder: 'Mô tả ngắn gọn về chương...' },
+  { name: 'order_index', label: 'Thứ tự',         type: 'number',   placeholder: '1, 2, 3...' },
+  { name: 'is_locked',   label: 'Khóa chương',    type: 'checkbox', placeholder: 'Học viên phải hoàn thành chương trước' }
+]
+
+const LESSON_FIELDS = [
+  { name: 'title',        label: 'Tiêu đề Bài học', type: 'text',     required: true },
+  { name: 'content_type', label: 'Loại nội dung',   type: 'select',   required: true, options: [
+    { value: 'VIDEO',    label: 'Video' },
+    { value: 'DOCUMENT', label: 'Tài liệu (Văn bản)' },
+    { value: 'FILE',     label: 'Tệp đính kèm (Slide/PDF)' },
+    { value: 'EMBED',    label: 'Nhúng (Youtube/Vimeo)' }
+  ], default: 'DOCUMENT' },
+  { name: 'content',      label: 'Nội dung / Link nhúng', type: 'textarea', placeholder: 'Nhập nội dung hoặc URL nhúng...' },
+  { name: 'file',         label: 'Tải lên Video/Slide',   type: 'file',     accept: 'video/*,.pdf,.ppt,.pptx', placeholder: 'Chọn tệp để tải lên server' },
+  { name: 'duration_seconds', label: 'Thời lượng (giây)', type: 'number',   placeholder: 'VD: 300' }
+]
+
+
 function generateSchedulePoints(startDate, endDate, scheduleDaysStr, totalSessions) {
   if (!startDate) return [];
   const start = new Date(startDate);
@@ -68,8 +89,22 @@ export default function CourseDetail() {
   const [loading, setLoading] = useState(true)
   const [quizzes, setQuizzes] = useState([])
   const [quizModal, setQuizModal] = useState(null)
+  const [chapterModal, setChapterModal] = useState(null)
+  const [lessonModal, setLessonModal] = useState(null)
   const [editingQuizQuestions, setEditingQuizQuestions] = useState(null)
   const { user } = useAuth()
+  const canManage = user?.role === 'INSTRUCTOR' || user?.role === 'ADMIN'
+
+  const fetchCourse = async () => {
+    try {
+      const res = await api.get(`/courses/${id}`)
+      const data = res.data.data ?? res.data
+      setCourse(data)
+      if (!openChapter) {
+        setOpenChapter(data.chapters?.[0]?._id)
+      }
+    } catch (err) { console.error(err) }
+  }
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -136,6 +171,50 @@ export default function CourseDetail() {
     setEditingQuizQuestions(null)
   }
 
+  const handleChapterSubmit = async (form) => {
+    if (chapterModal === 'create') {
+      await api.post(`/courses/${id}/chapters`, form)
+    } else if (form._id) {
+      await api.put(`/courses/${id}/chapters/${form._id}`, form)
+    }
+    await fetchCourse()
+    setChapterModal(null)
+  }
+
+  const handleLessonSubmit = async (form) => {
+    const { mode, chapterId, lesson } = lessonModal
+    let finalForm = { ...form }
+
+    // Handle file upload if present
+    if (form.file instanceof File) {
+      const formData = new FormData()
+      formData.append('file', form.file)
+      const uploadRes = await api.post('/courses/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      })
+      finalForm.resource_key = uploadRes.data.data.resource_key
+      delete finalForm.file
+    }
+
+    if (mode === 'create') {
+      await api.post(`/courses/${id}/chapters/${chapterId}/lessons`, finalForm)
+    } else if (lesson?._id) {
+      // Logic for updating lesson could be added to backend, 
+      // but for now we focus on creation as requested
+      alert('Tính năng cập nhật bài học đang được hoàn thiện. Vui lòng xóa và tạo lại nếu cần thay đổi lớn.')
+    }
+    await fetchCourse()
+    setLessonModal(null)
+  }
+
+  const handleDeleteChapter = async (chapterId) => {
+    if (!window.confirm('Bạn có chắc chắn muốn xóa chương này và tất cả bài học bên trong?')) return
+    try {
+      await api.delete(`/courses/${id}/chapters/${chapterId}`)
+      await fetchCourse()
+    } catch (err) { alert(err.response?.data?.error || 'Lỗi khi xóa chương') }
+  }
+
 
   const handleExport = async (quizId) => {
     try {
@@ -179,10 +258,19 @@ export default function CourseDetail() {
       <div className="grid-2" style={{ alignItems:'start' }}>
         {/* Chapters sidebar */}
         <div id="course-content">
-          <h3 style={{ marginBottom:'1rem', color:'var(--text-2)' }}>Nội dung khóa học</h3>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <h3 style={{ margin: 0, color:'var(--text-2)' }}>Nội dung khóa học</h3>
+            {canManage && (
+              <button className="btn btn-primary btn-sm" onClick={() => setChapterModal('create')}>
+                ➕ Thêm Chương
+              </button>
+            )}
+          </div>
+          
           {(!course.chapters || course.chapters.length === 0) && (
             <div className="empty-state"><div className="empty-state__icon">📭</div><h3>Chưa có chương nào</h3></div>
           )}
+
           {course.chapters?.map((ch, ci) => (
             <div key={ch._id} style={{ marginBottom:'0.5rem' }}>
               <button
@@ -193,11 +281,20 @@ export default function CourseDetail() {
                   borderRadius:'var(--radius-sm)', color:'var(--text)', fontSize:'0.875rem', fontWeight:600,
                   cursor:'pointer', transition:'var(--transition)'
                 }}>
-                <span>📂 Chương {ci + 1}: {ch.title}</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span>📂 Chương {ci + 1}: {ch.title}</span>
+                  {canManage && (
+                    <div style={{ display: 'flex', gap: '4px' }} onClick={e => e.stopPropagation()}>
+                       <button className="btn btn-secondary btn-sm" style={{ padding: '2px 6px' }} onClick={() => setChapterModal(ch)}>✏️</button>
+                       <button className="btn btn-danger btn-sm" style={{ padding: '2px 6px' }} onClick={() => handleDeleteChapter(ch._id)}>🗑️</button>
+                    </div>
+                  )}
+                </span>
                 <span style={{ color:'var(--text-3)' }}>{ch.lessons?.length || 0} bài · {openChapter === ch._id ? '▲' : '▼'}</span>
               </button>
               {openChapter === ch._id && (
-                <div style={{ background:'var(--bg-3)', borderRadius:'0 0 8px 8px', overflow:'hidden' }}>
+                <div style={{ background:'var(--bg-3)', borderRadius:'0 0 8px 8px', overflow:'hidden', paddingBottom: canManage ? '8px' : 0 }}>
+
                   {ch.lessons?.map((ls, li) => (
                     <div key={ls._id} 
                       onClick={() => setSelectedLesson(ls)}
@@ -219,6 +316,17 @@ export default function CourseDetail() {
                   ))}
                   {(!ch.lessons || ch.lessons.length === 0) && (
                     <div style={{ padding:'1rem', color:'var(--text-3)', fontSize:'0.875rem', textAlign:'center' }}>Chưa có bài học</div>
+                  )}
+                  {canManage && (
+                    <div style={{ padding: '8px 1rem' }}>
+                      <button 
+                        className="btn btn-secondary btn-sm" 
+                        style={{ width: '100%', justifyContent: 'center', borderStyle: 'dashed' }}
+                        onClick={() => setLessonModal({ mode: 'create', chapterId: ch._id })}
+                      >
+                        ➕ Thêm Bài học mới
+                      </button>
+                    </div>
                   )}
                 </div>
               )}
@@ -379,7 +487,12 @@ export default function CourseDetail() {
                   <p>{selectedLesson.content || 'Không có mô tả nội dung.'}</p>
                 </div>
                 {selectedLesson.resource_key && (
-                  <a href={selectedLesson.resource_key} target="_blank" rel="noreferrer" className="btn btn-primary">
+                  <a 
+                    href={`http://localhost:3001/uploads/lessons/${selectedLesson.resource_key}`} 
+                    target="_blank" 
+                    rel="noreferrer" 
+                    className="btn btn-primary"
+                  >
                     ⬇️ Tải xuống tài liệu đính kèm
                   </a>
                 )}
@@ -398,7 +511,28 @@ export default function CourseDetail() {
           onClose={() => setQuizModal(null)}
         />
       )}
+      {/* Chapter Modal */}
+      {chapterModal && (
+        <CrudModal
+          title={chapterModal === 'create' ? 'Tạo chương mới' : `Sửa chương: ${chapterModal.title}`}
+          fields={CHAPTER_FIELDS}
+          initialData={chapterModal === 'create' ? null : chapterModal}
+          onSubmit={handleChapterSubmit}
+          onClose={() => setChapterModal(null)}
+        />
+      )}
+      {/* Lesson Modal */}
+      {lessonModal && (
+        <CrudModal
+          title={lessonModal.mode === 'create' ? 'Thêm bài học mới' : `Sửa bài học: ${lessonModal.lesson?.title}`}
+          fields={LESSON_FIELDS}
+          initialData={lessonModal.mode === 'create' ? null : lessonModal.lesson}
+          onSubmit={handleLessonSubmit}
+          onClose={() => setLessonModal(null)}
+        />
+      )}
       {/* Question Editor Overlay */}
+
       {editingQuizQuestions && (
         <QuizQuestionEditor
           quiz={editingQuizQuestions}

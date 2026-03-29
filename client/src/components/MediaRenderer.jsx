@@ -11,9 +11,9 @@ const MediaRenderer = ({ url, type, style = {} }) => {
     if (!url.startsWith('http') && !url.startsWith('/') && !url.startsWith('data:')) {
       resolvedUrl = '/' + url;
     }
-    // If URL points to backend port 3000 directly, redirect it to use the frontend proxy (5173)
-    if (url.includes('localhost:3000')) {
-      resolvedUrl = url.replace('localhost:3000', window.location.host);
+    // If URL points to backend port 3001 directly, redirect it to use the frontend proxy (5173)
+    if (url.includes('localhost:3001')) {
+      resolvedUrl = url.replace('localhost:3001', window.location.host);
     }
   }
 

@@ -31,9 +31,9 @@ router.get('/', async (req, res, next) => {
     try {
         const { group_id, course_id, status } = req.query;
         const filter = {};
-        if (group_id)  filter.group_id  = group_id;
+        if (group_id) filter.group_id = group_id;
         if (course_id) filter.course_id = course_id;
-        if (status)    filter.status    = status;
+        if (status) filter.status = status;
 
         const assignments = await Assignment.find(filter)
             .populate('created_by', 'full_name email')
@@ -77,7 +77,7 @@ router.post('/', CAN_MANAGE, uploadInstructor.array('files', 10), multerErrorHan
                     await Notification.insertMany(notifications);
 
                     // Emit real-time socket event
-                    const io = require('../socket').getIo();
+                    const io = require('../../Server/socket').getIo();
                     io.to(`group_${group._id}`).emit('NEW_ASSIGNMENT', {
                         assignment_id: assignment._id,
                         title: assignment.title,
@@ -99,8 +99,8 @@ router.post('/', CAN_MANAGE, uploadInstructor.array('files', 10), multerErrorHan
 // PUT /assignments/:id – update (ADMIN or INSTRUCTOR only)
 router.put('/:id', CAN_MANAGE, uploadInstructor.array('files', 10), multerErrorHandling, async (req, res, next) => {
     try {
-        const { created_by, ...updateData } = req.body; 
-        
+        const { created_by, ...updateData } = req.body;
+
         if (req.files && req.files.length > 0) {
             updateData.attachments = formatFiles(req.files);
         }
@@ -110,7 +110,7 @@ router.put('/:id', CAN_MANAGE, uploadInstructor.array('files', 10), multerErrorH
             updateData,
             { new: true, runValidators: true }
         ).populate('created_by', 'full_name email').populate('group_id', 'name');
-        
+
         if (!assignment) return res.status(404).json({ success: false, error: 'Assignment not found' });
         res.json({ success: true, data: assignment, message: 'Bài tập đã được cập nhật' });
     } catch (err) { next(err); }
@@ -121,7 +121,7 @@ router.delete('/:id', CAN_MANAGE, async (req, res, next) => {
     try {
         const assignment = await Assignment.findByIdAndDelete(req.params.id);
         if (!assignment) return res.status(404).json({ success: false, error: 'Assignment not found' });
-        
+
         // Remove submissions
         await AssignmentSubmission.deleteMany({ assignment_id: req.params.id });
         res.json({ success: true, message: 'Bài tập đã được xóa' });
@@ -144,7 +144,7 @@ router.get('/:id/dashboard', CAN_MANAGE, async (req, res, next) => {
         const studentIds = groupMembers.map(m => m.user_id);
 
         const students = await User.find({ _id: { $in: studentIds } }).select('full_name email');
-        
+
         // Get all submissions for these students for this assignment
         const submissions = await AssignmentSubmission.find({
             assignment_id: assignment._id,
@@ -221,7 +221,7 @@ router.get('/:id/download-all', CAN_MANAGE, async (req, res, next) => {
         if (!assignment) return res.status(404).send('Assignment not found');
 
         const submissions = await AssignmentSubmission.find({ assignment_id: assignment._id }).populate('student_id', 'full_name');
-        
+
         const archive = archiver('zip', { zlib: { level: 9 } });
         res.attachment(`Assignment_${assignment._id}_Submissions.zip`);
         archive.pipe(res);
@@ -233,7 +233,7 @@ router.get('/:id/download-all', CAN_MANAGE, async (req, res, next) => {
                     if (fs.existsSync(filePath)) {
                         const safeStudentName = sub.student_id.full_name.replace(/[^a-zA-Z0-9]/g, '_');
                         const ext = path.extname(f.file_name);
-                        const fileNameInZip = `${safeStudentName}_${sub.student_id._id}_file${idx+1}${ext}`;
+                        const fileNameInZip = `${safeStudentName}_${sub.student_id._id}_file${idx + 1}${ext}`;
                         archive.file(filePath, { name: fileNameInZip });
                     }
                 });
@@ -272,22 +272,22 @@ router.post('/:id/submissions', uploadStudent.array('files', 5), multerErrorHand
             submission.text_content = text_content;
             submission.external_url = external_url;
             if (filesData.length > 0) submission.files = filesData;
-            
+
             submission.is_late = isLate;
             submission.attempt_number += 1;
             submission.submitted_at = new Date();
             submission.status = isLate ? 'LATE' : 'SUBMITTED';
             // keep old grade if any, or reset it? Depending on policy, usually reset to PENDING
             if (submission.grade) submission.grade.status = 'PENDING';
-            
+
             await submission.save();
         } else {
             // Create new
             submission = new AssignmentSubmission({
                 assignment_id: req.params.id,
                 student_id: req.user._id,
-                submission_type: submission_type || 'FILE', 
-                text_content, 
+                submission_type: submission_type || 'FILE',
+                text_content,
                 external_url,
                 files: filesData,
                 is_late: isLate,
@@ -310,10 +310,10 @@ router.put('/submissions/:id/grade', CAN_MANAGE, async (req, res, next) => {
         if (!submission) return res.status(404).json({ success: false, error: 'Submission not found' });
 
         submission.grade = {
-            grader_id:    req.user._id,
+            grader_id: req.user._id,
             score, feedback,
-            status:       status || 'GRADED',
-            graded_at:    new Date()
+            status: status || 'GRADED',
+            graded_at: new Date()
         };
         submission.status = 'GRADED';
         submission.markModified('grade');
@@ -325,8 +325,8 @@ router.put('/submissions/:id/grade', CAN_MANAGE, async (req, res, next) => {
             await Notification.create({
                 recipient_id: submission.student_id,
                 title: `Bài tập đã được chấm: ${assignment.title}`,
-                body:  `Bài nộp của bạn đã được chấm điểm. Điểm: ${score}`,
-                type:  'ASSIGNMENT_GRADED',
+                body: `Bài nộp của bạn đã được chấm điểm. Điểm: ${score}`,
+                type: 'ASSIGNMENT_GRADED',
                 source: { entity_id: assignment._id, entity_type: 'ASSIGNMENT' }
             });
         }
@@ -341,16 +341,16 @@ router.get('/:id', async (req, res, next) => {
             .populate('created_by', 'full_name email')
             .populate('group_id', 'name');
         if (!assignment) return res.status(404).json({ success: false, error: 'Assignment not found' });
-        
+
         // Include the student's own submission if they are a STUDENT
         let submission = null;
         if (req.user.role === 'STUDENT') {
-            submission = await AssignmentSubmission.findOne({ 
-                assignment_id: assignment._id, 
-                student_id: req.user._id 
+            submission = await AssignmentSubmission.findOne({
+                assignment_id: assignment._id,
+                student_id: req.user._id
             }).sort({ submitted_at: -1 });
         }
-        
+
         res.json({ success: true, data: { ...assignment.toObject(), my_submission: submission } });
     } catch (err) { next(err); }
 });

@@ -2,8 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 
-const routes = require('./routes');
-const { notFound, errorHandler } = require('./middleware/errorHandler');
+const routes = require('../src/routes');
+const { notFound, errorHandler } = require('../src/middleware/errorHandler');
 
 const app = express();
 

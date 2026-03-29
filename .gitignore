@@ -7,12 +7,16 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 .env
-
+docker-compose.yml
+Dockerfile
+.dockerignore
 node_modules
 dist
 dist-ssr
 *.local
-
+.env.example 
+deploy.yml
+./scripts/createAdmin.js
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -24,3 +28,4 @@ dist-ssr
 *.sln
 *.sw?
 .env
+.github/workflows/deploy.yml

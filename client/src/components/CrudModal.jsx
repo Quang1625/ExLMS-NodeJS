@@ -97,6 +97,21 @@ export default function CrudModal({ title, fields, initialData, onSubmit, onClos
                   />
                   <span style={{ fontSize: '0.875rem', color: 'var(--text-2)' }}>{f.placeholder}</span>
                 </label>
+              ) : f.type === 'file' ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <input
+                    type="file"
+                    onChange={e => handleChange(f.name, e.target.files[0], 'file')}
+                    accept={f.accept}
+                    required={f.required && !initialData}
+                    style={{ fontSize: '0.875rem' }}
+                  />
+                  {initialData?.[f.name] && typeof initialData[f.name] === 'string' && (
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-3)' }}>
+                      Tệp hiện tại: {initialData[f.name]}
+                    </div>
+                  )}
+                </div>
               ) : (
                 <input
                   type={f.type || 'text'}

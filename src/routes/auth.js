@@ -3,9 +3,9 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-const ACCESS_SECRET  = process.env.JWT_ACCESS_SECRET  || 'access_secret_dev';
+const ACCESS_SECRET = process.env.JWT_ACCESS_SECRET || 'access_secret_dev';
 const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'refresh_secret_dev';
-const ACCESS_EXPIRES  = process.env.JWT_ACCESS_EXPIRES  || '15m';
+const ACCESS_EXPIRES = process.env.JWT_ACCESS_EXPIRES || '15m';
 const REFRESH_EXPIRES = process.env.JWT_REFRESH_EXPIRES || '7d';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -45,8 +45,8 @@ router.post('/register', async (req, res, next) => {
         if (exists) return res.status(409).json({ error: 'Email đã được sử dụng' });
 
         // INSTRUCTOR needs admin approval → PENDING; others → ACTIVE
-        const requestedRole  = ['INSTRUCTOR', 'STUDENT'].includes(role) ? role : 'STUDENT';
-        const initialStatus  = requestedRole === 'INSTRUCTOR' ? 'PENDING' : 'ACTIVE';
+        const requestedRole = ['INSTRUCTOR', 'STUDENT'].includes(role) ? role : 'STUDENT';
+        const initialStatus = requestedRole === 'INSTRUCTOR' ? 'PENDING' : 'ACTIVE';
 
         const password_hash = await bcrypt.hash(password, 12);
 
@@ -116,7 +116,7 @@ router.post('/login', async (req, res, next) => {
         user.locked_until = undefined;
         user.last_login_at = new Date();
 
-        const access_token  = signAccess(user);
+        const access_token = signAccess(user);
         const refresh_token = signRefresh(user);
 
         // Save session
@@ -166,7 +166,7 @@ router.post('/refresh', async (req, res, next) => {
         // Rotate: remove old, insert new
         user.sessions.splice(sessionIdx, 1);
 
-        const new_access_token  = signAccess(user);
+        const new_access_token = signAccess(user);
         const new_refresh_token = signRefresh(user);
 
         user.sessions.push({
@@ -218,7 +218,7 @@ router.post('/google', async (req, res, next) => {
         }
 
         console.log('🔍 Attempting Google Auth with ID:', GOOGLE_CLIENT_ID);
-        
+
         let ticket;
         try {
             ticket = await client.verifyIdToken({
@@ -264,7 +264,7 @@ router.post('/google', async (req, res, next) => {
         }
 
         user.last_login_at = new Date();
-        const access_token  = signAccess(user);
+        const access_token = signAccess(user);
         const refresh_token = signRefresh(user);
 
         user.sessions.push({
@@ -301,7 +301,7 @@ router.get('/oauth/:provider', (req, res) => {
         return res.status(400).json({ error: 'Provider không hỗ trợ' });
     }
     if (provider === 'google') {
-       return res.json({ message: 'Sử dụng endpoint POST /api/auth/google', provider, status: 'implemented' });
+        return res.json({ message: 'Sử dụng endpoint POST /api/auth/google', provider, status: 'implemented' });
     }
     res.json({
         message: `OAuth với ${provider} sẽ được tích hợp trong phiên bản tiếp theo`,
