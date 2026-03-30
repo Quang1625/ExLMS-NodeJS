@@ -19,7 +19,7 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           source: "." # Copy toàn bộ thư mục hiện tại (sẽ tự động bỏ qua các file trong .gitignore)
           target: "/home/ubuntu/ExLMS/ExLMS-NodeJS"
-          rm: true # Xóa code cũ trên server trước khi đè code mới lên để tránh rác
+          rm: false # Xóa code cũ trên server trước khi đè code mới lên để tránh rác
 
       - name: Chạy lệnh Docker Compose trên Server
         uses: appleboy/ssh-action@master
