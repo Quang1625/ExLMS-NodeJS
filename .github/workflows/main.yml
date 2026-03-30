@@ -1,0 +1,33 @@
+name: Deploy ExLMS-Nodejs to Oracle Cloud
+
+on:
+  push:
+    branches: [ "main" ] 
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Tải code từ GitHub về Runner
+        uses: actions/checkout@v4
+
+      - name: Copy code từ Runner sang Server Oracle
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_HOST }}
+          key: ${{ secrets.SSH_KEY }}
+          source: "." # Copy toàn bộ thư mục hiện tại (sẽ tự động bỏ qua các file trong .gitignore)
+          target: "/home/ubuntu/ExLMS/ExLMS-NodeJS"
+          rm: true # Xóa code cũ trên server trước khi đè code mới lên để tránh rác
+
+      - name: Chạy lệnh Docker Compose trên Server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_HOST }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd /home/ubuntu/ExLMS/ExLMS-NodeJS
+            # Chỉ build lại backend và frontend, không đụng tới database để tránh mất dữ liệu
+            docker compose up -d --build exlms-backend exlms-client
