@@ -30,4 +30,4 @@ jobs:
           script: |
             cd /home/ubuntu/ExLMS/ExLMS-NodeJS
             # Chỉ build lại backend và frontend, không đụng tới database để tránh mất dữ liệu
-            docker compose up -d --build exlms-nodejs-client exlms-nodejs-backend
+            docker compose up -d --build
