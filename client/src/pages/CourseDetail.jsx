@@ -7,6 +7,11 @@ import api from '../api/axios'
 import MediaRenderer from '../components/MediaRenderer'
 import { useAuth } from '../context/AuthContext'
 
+const buildUploadUrl = (resourceKey) => {
+  if (!resourceKey) return '#'
+  return `/uploads/lessons/${resourceKey}`
+}
+
 const QUIZ_FIELDS = [
   { name: 'title',             label: 'Tiêu đề Quiz',   type: 'text',     required: true, placeholder: 'Nhập tên câu đố' },
   { name: 'description',       label: 'Mô tả',          type: 'textarea', placeholder: 'Mô tả chi tiết...' },
@@ -488,7 +493,7 @@ export default function CourseDetail() {
                 </div>
                 {selectedLesson.resource_key && (
                   <a 
-                    href={`http://localhost:3001/uploads/lessons/${selectedLesson.resource_key}`} 
+                    href={buildUploadUrl(selectedLesson.resource_key)} 
                     target="_blank" 
                     rel="noreferrer" 
                     className="btn btn-primary"

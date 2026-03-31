@@ -5,7 +5,7 @@ services:
     container_name: exlms-mongo
     restart: unless-stopped
     ports:
-      - "27017:27017"
+      - "127.0.0.1:27017:27017"
     volumes:
       - mongo-data:/data/db
     environment:
@@ -34,12 +34,13 @@ services:
       - NODE_ENV=production
       - PORT=3000
       - MONGODB_URI=mongodb://mongo:27017/ExLMS
+      - FRONTEND_URL=${FRONTEND_URL}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
       - JWT_ACCESS_SECRET=${JWT_ACCESS_SECRET}
       - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
     volumes:
-      - ./public/uploads:/app/public/uploads
+      - ${UPLOADS_DIR:-./public/uploads}:/app/public/uploads
     networks:
       - exlms-network
 
@@ -53,7 +54,7 @@ services:
     container_name: exlms-client
     restart: unless-stopped
     ports:
-      - "5173"
+      - "${CLIENT_PORT:-5173}:5173"
     depends_on:
       - backend
     networks:

@@ -1,12 +1,20 @@
 const socketIo = require('socket.io');
 
 let io;
+const allowedOrigins = (process.env.CORS_ORIGIN || process.env.FRONTEND_URL || '')
+    .split(',')
+    .map(origin => origin.trim())
+    .filter(Boolean);
+
+const corsOrigin = allowedOrigins.length
+    ? allowedOrigins
+    : true;
 
 module.exports = {
     init: (server) => {
         io = socketIo(server, {
             cors: {
-                origin: 'http://localhost:5173', // Vite default port
+                origin: corsOrigin,
                 methods: ['GET', 'POST', 'PUT', 'DELETE'],
                 credentials: true
             }

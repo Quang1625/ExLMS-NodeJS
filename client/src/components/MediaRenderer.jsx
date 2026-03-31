@@ -1,21 +1,28 @@
 import React, { useState } from 'react';
 
+const normalizeMediaUrl = (url) => {
+  if (typeof url !== 'string' || !url) return url;
+
+  if (url.startsWith('data:')) return url;
+
+  if (url.startsWith('http://localhost:3001') || url.startsWith('https://localhost:3001')) {
+    const parsed = new URL(url);
+    return `${window.location.origin}${parsed.pathname}${parsed.search}${parsed.hash}`;
+  }
+
+  if (!url.startsWith('http') && !url.startsWith('/')) {
+    return `/${url}`;
+  }
+
+  return url;
+};
+
 const MediaRenderer = ({ url, type, style = {} }) => {
   const [hasError, setHasError] = useState(false);
 
   if (!url) return null;
 
-  // Normalize URL: Ensure relative URLs start with / and handle potential port mismatches
-  let resolvedUrl = url;
-  if (typeof url === 'string') {
-    if (!url.startsWith('http') && !url.startsWith('/') && !url.startsWith('data:')) {
-      resolvedUrl = '/' + url;
-    }
-    // If URL points to backend port 3001 directly, redirect it to use the frontend proxy (5173)
-    if (url.includes('localhost:3001')) {
-      resolvedUrl = url.replace('localhost:3001', window.location.host);
-    }
-  }
+  const resolvedUrl = normalizeMediaUrl(url);
 
   const placeholderSvg = `data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400' viewBox='0 0 600 400'%3E%3Crect width='600' height='400' fill='%232d2d3d'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='20' fill='%23888899'%3EKh%C3%B4ng th%E1%BB%83 t%E1%BA%A3i %E1%BA%A3nh%3C/text%3E%3C/svg%3E`;
 

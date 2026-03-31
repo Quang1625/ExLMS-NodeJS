@@ -1,33 +1,39 @@
-name: Deploy ExLMS-Nodejs to Oracle Cloud
+name: Deploy ExLMS
 
 on:
   push:
-    branches: [ "main" ] 
+    branches: ["main"]
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Tải code từ GitHub về Runner
+      - name: Checkout source
         uses: actions/checkout@v4
 
-      - name: Copy code từ Runner sang Server Oracle
-        uses: appleboy/scp-action@master
+      - name: Copy project to server
+        uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SERVER_HOST }}
-          username: ubuntu
+          username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_KEY }}
-          source: "." # Copy toàn bộ thư mục hiện tại (sẽ tự động bỏ qua các file trong .gitignore)
-          target: "/home/ubuntu/ExLMS/ExLMS-NodeJS"
-          rm: false # Xóa code cũ trên server trước khi đè code mới lên để tránh rác
+          source: "."
+          target: "/home/${{ secrets.SERVER_USER }}/ExLMS/ExLMS-NodeJS"
+          overwrite: true
 
-      - name: Chạy lệnh Docker Compose trên Server
-        uses: appleboy/ssh-action@master
+      - name: Deploy with Docker Compose
+        uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SERVER_HOST }}
-          username: ubuntu
+          username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            cd /home/ubuntu/ExLMS/ExLMS-NodeJS
-            # Chỉ build lại backend và frontend, không đụng tới database để tránh mất dữ liệu
-            docker compose up -d --build
+            set -e
+            APP_DIR=/home/${{ secrets.SERVER_USER }}/ExLMS/ExLMS-NodeJS
+            mkdir -p "$APP_DIR"
+            mkdir -p /home/${{ secrets.SERVER_USER }}/ExLMS/volumes/uploads
+            cd "$APP_DIR"
+            test -f .env
+            docker compose up -d --build --remove-orphans
+            docker compose ps
