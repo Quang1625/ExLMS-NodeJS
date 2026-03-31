@@ -72,19 +72,15 @@ export default function QuizPlay() {
     if (answered || !currentQuestion) return
     setAnswered(true)
 
-    const isCorrect = answer.is_correct
-    const points = isCorrect ? currentQuestion.points : 0
-
-    setFeedback(isCorrect ? 'Chính xác! 🎉' : 'Tiếc quá! 😢')
+    // Feedback is now more generic until server provides it (or we can assume submission success)
+    setFeedback('Đã nhận câu trả lời! ⚡')
 
     if (socket) {
       socket.emit('quiz:submit_answer', {
         roomCode: code,
         userId: user?._id,
         questionId: currentQuestion._id,
-        answerId: answer._id,
-        isCorrect,
-        points
+        answerId: answer._id
       })
     }
   }

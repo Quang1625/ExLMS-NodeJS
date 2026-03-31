@@ -13,6 +13,8 @@ export default function GroupDetail() {
   const navigate = useNavigate()
   const [group, setGroup] = useState(null)
   const [feed, setFeed] = useState([])
+  const [courses, setCourses] = useState([])
+  const [assignments, setAssignments] = useState([])
   const [tab, setTab] = useState('feed')
   const [loading, setLoading] = useState(true)
   const [requests, setRequests] = useState([])
@@ -21,11 +23,15 @@ export default function GroupDetail() {
     setLoading(true)
     Promise.all([
       api.get(`/study-groups/${id}`),
-      api.get(`/groups/${id}/feed`),
+      api.get(`/study-groups/${id}/feed`),
+      api.get(`/courses?group_id=${id}`),
+      api.get(`/assignments?group_id=${id}`),
       canManage ? api.get(`/study-groups/${id}/join-requests`).catch(() => ({ data: { data: [] } })) : Promise.resolve({ data: { data: [] } })
-    ]).then(([g, f, r]) => {
+    ]).then(([g, f, c, a, r]) => {
       setGroup(g.data.data ?? g.data)
       setFeed(f.data.data ?? f.data)
+      setCourses(c.data.data ?? c.data)
+      setAssignments(a.data.data ?? a.data)
       setRequests(r.data.data ?? r.data)
     }).catch(() => navigate('/groups'))
     .finally(() => setLoading(false))
@@ -76,6 +82,8 @@ export default function GroupDetail() {
       <div style={{ display:'flex', gap:'0.5rem', marginBottom:'1.5rem', borderBottom:'1px solid var(--border)', paddingBottom:'0', overflowX: 'auto' }}>
         {[
           ['feed','📰 Bảng tin'],
+          ['courses', '📚 Khóa học'],
+          ['assignments', '📝 Bài tập'],
           ['members','👥 Thành viên'],
           ['meeting', '📹 Phòng họp'],
           ...(canManage ? [['requests', `⏳ Yêu cầu (${requests.length})`]] : [])
@@ -110,6 +118,54 @@ export default function GroupDetail() {
                 <span className="vote-btn">👍 {post.reaction_count}</span>
                 <span className="vote-btn">💬 {post.comment_count}</span>
               </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {tab === 'courses' && (
+        <div className="grid-auto">
+          {courses.length === 0 ? (
+             <div className="empty-state" style={{ gridColumn: '1 / -1' }}><div className="empty-state__icon">📚</div><h3>Chưa có khóa học nào</h3></div>
+          ) : courses.map(course => (
+            <div key={course._id} className="course-card" onClick={() => navigate(`/courses/${course._id}`)}>
+              <div className="course-card__thumb">
+                📖
+                <span className={`course-card__status tag ${course.status === 'PUBLISHED' ? 'tag--success' : 'tag--warning'}`}>
+                  {course.status}
+                </span>
+              </div>
+              <div className="course-card__body">
+                <h3 className="course-card__title">{course.title}</h3>
+                <div className="course-card__meta">
+                  <span>👤 {course.created_by?.full_name}</span>
+                  <span>📅 {new Date(course.created_at).toLocaleDateString('vi-VN')}</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {tab === 'assignments' && (
+        <div style={{ display:'flex', flexDirection:'column', gap:'1rem' }}>
+          {assignments.length === 0 ? (
+            <div className="empty-state"><div className="empty-state__icon">📝</div><h3>Chưa có bài tập nào</h3></div>
+          ) : assignments.map(a => (
+            <div key={a._id} className="card" style={{ display:'flex', alignItems:'center', gap:'1.5rem', cursor:'pointer' }} onClick={() => navigate(`/assignments/${a._id}`)}>
+               <div style={{ width:48, height:48, borderRadius:12, background:'rgba(108,99,255,0.1)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.5rem', flexShrink:0 }}>
+                📄
+              </div>
+              <div style={{ flex:1 }}>
+                <h3 style={{ fontSize:'1rem', fontWeight:600 }}>{a.title}</h3>
+                <div style={{ display:'flex', gap:'1rem', marginTop:'0.25rem', fontSize:'0.8rem', color:'var(--text-3)' }}>
+                  <span>Hạn nộp: {new Date(a.due_at).toLocaleString('vi-VN')}</span>
+                  <span>Điểm tối đa: {a.max_score}</span>
+                </div>
+              </div>
+              <span className={`tag ${new Date() > new Date(a.due_at) ? 'tag--danger' : 'tag--primary'}`}>
+                {new Date() > new Date(a.due_at) ? 'Đã hết hạn' : 'Đang mở'}
+              </span>
             </div>
           ))}
         </div>

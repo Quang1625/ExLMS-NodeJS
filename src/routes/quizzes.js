@@ -31,8 +31,26 @@ router.get('/', async (req, res, next) => {
 // GET quiz by ID
 router.get('/:id', async (req, res, next) => {
     try {
-        const quiz = await Quiz.findById(req.params.id);
+        const quiz = await Quiz.findById(req.params.id).lean();
         if (!quiz) return res.status(404).json({ error: 'Quiz not found' });
+        
+        // If user is not ADMIN and not the creator, sanitize sensitive data
+        const isCreator = quiz.created_by && quiz.created_by.toString() === req.user._id.toString();
+        const isAdmin = req.user.role === 'ADMIN';
+
+        if (!isAdmin && !isCreator) {
+            quiz.questions = quiz.questions.map(q => {
+                const { explanation, ...rest } = q;
+                return {
+                    ...rest,
+                    answers: q.answers.map(a => {
+                        const { is_correct, ...ansRest } = a;
+                        return ansRest;
+                    })
+                };
+            });
+        }
+
         res.json(quiz);
     } catch (err) { next(err); }
 });

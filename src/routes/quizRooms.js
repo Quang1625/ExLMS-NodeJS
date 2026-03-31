@@ -62,10 +62,28 @@ router.get('/:code', async (req, res, next) => {
     try {
         const room = await QuizRoom.findOne({ room_code: req.params.code.toUpperCase() })
             .populate('quiz_id', 'title questions.content questions.points questions.question_type questions.answers questions.video_url questions.media_type questions.media_url')
-            .populate('host_id', 'full_name');
+            .populate('host_id', 'full_name')
+            .lean();
 
-            
         if (!room) return res.status(404).json({ error: 'Room not found' });
+        
+        // If user is not the HOST and not ADMIN, sanitize sensitive quiz data
+        const isHost = room.host_id && room.host_id._id.toString() === req.user._id.toString();
+        const isAdmin = req.user.role === 'ADMIN';
+
+        if (!isAdmin && !isHost && room.quiz_id && room.quiz_id.questions) {
+            room.quiz_id.questions = room.quiz_id.questions.map(q => {
+                const { explanation, ...rest } = q;
+                return {
+                    ...rest,
+                    answers: q.answers ? q.answers.map(a => {
+                        const { is_correct, ...ansRest } = a;
+                        return ansRest;
+                    }) : []
+                };
+            });
+        }
+
         res.json(room);
     } catch (err) { next(err); }
 });

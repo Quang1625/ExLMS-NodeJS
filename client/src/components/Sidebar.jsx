@@ -26,7 +26,7 @@ const adminNavItems = [
   ]},
 ]
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen, onClose }) {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
 
@@ -34,6 +34,13 @@ export default function Sidebar() {
     if (!window.confirm('Bạn có chắc muốn đăng xuất không?')) return
     await logout()
     navigate('/login')
+    onClose()
+  }
+
+  const handleNavClick = () => {
+    if (window.innerWidth <= 768) {
+      onClose()
+    }
   }
 
   const initials = user?.full_name
@@ -42,7 +49,7 @@ export default function Sidebar() {
   const roleLabel = { ADMIN: 'Quản trị viên', INSTRUCTOR: 'Giảng viên', STUDENT: 'Sinh viên' }
 
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar ${isOpen ? 'sidebar--open' : ''}`}>
       <div className="sidebar__logo">
         <div className="sidebar__logo-icon">🎓</div>
         <span className="sidebar__logo-text">Ex<span>LMS</span></span>
@@ -58,6 +65,7 @@ export default function Sidebar() {
                 to={link.to}
                 end={link.end}
                 className={({ isActive }) => `sidebar__link${isActive ? ' active' : ''}`}
+                onClick={handleNavClick}
               >
                 <span className="icon">{link.icon}</span>
                 {link.label}
@@ -75,6 +83,7 @@ export default function Sidebar() {
                 key={link.to}
                 to={link.to}
                 className={({ isActive }) => `sidebar__link${isActive ? ' active' : ''}`}
+                onClick={handleNavClick}
               >
                 <span className="icon">{link.icon}</span>
                 {link.label}
@@ -88,6 +97,7 @@ export default function Sidebar() {
         <NavLink
             to="/profile"
             className={({ isActive }) => `sidebar__link${isActive ? ' active' : ''}`}
+            onClick={handleNavClick}
         >
             <span className="icon">👤</span>
             Trang cá nhân
@@ -103,7 +113,7 @@ export default function Sidebar() {
       </nav>
       
       {/* User info strip at bottom */}
-      <div className="sidebar__user" onClick={() => navigate('/profile')} style={{ cursor: 'pointer' }}>
+      <div className="sidebar__user" onClick={() => { navigate('/profile'); handleNavClick(); }} style={{ cursor: 'pointer' }}>
         <div className="avatar">{initials}</div>
         <div className="sidebar__user-info">
           <div className="sidebar__user-name">{user?.full_name}</div>

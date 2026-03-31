@@ -19,6 +19,10 @@ function Toast({ message, link, onClose }) {
 
 export default function Layout({ children }) {
   const [toast, setToast] = useState(null)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+
+  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen)
+  const closeSidebar = () => setIsSidebarOpen(false)
 
   useEffect(() => {
     const handleNewNotif = (e) => {
@@ -34,10 +38,14 @@ export default function Layout({ children }) {
   }, [])
 
   return (
-    <div className="layout">
-      <Sidebar />
+    <div className={`layout ${isSidebarOpen ? 'sidebar-open' : ''}`}>
+      {/* Mobile Backdrop */}
+      {isSidebarOpen && <div className="sidebar-backdrop" onClick={closeSidebar}></div>}
+      
+      <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
+      
       <div className="layout__content">
-        <Topbar />
+        <Topbar onMenuClick={toggleSidebar} />
         <main className="page fade-in">
           {children}
         </main>

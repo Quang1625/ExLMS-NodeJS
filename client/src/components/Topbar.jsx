@@ -1,12 +1,14 @@
 import { useNavigate } from 'react-router-dom'
 import { useSocket } from '../context/SocketContext'
 
-export default function Topbar({ title }) {
+export default function Topbar({ title, onMenuClick }) {
   const navigate = useNavigate()
   const { unreadCount } = useSocket()
   
   return (
     <header className="topbar">
+      <button className="topbar__menu-btn" onClick={onMenuClick}>☰</button>
+      
       <div className="topbar__search">
         <span className="topbar__search-icon">🔍</span>
         <input placeholder="Tìm kiếm khóa học, bài tập..." />
