@@ -37,6 +37,33 @@ router.get('/:id', async (req, res, next) => {
     } catch (err) { next(err); }
 });
 
+// GET check attempt (can I take this quiz?)
+router.get('/:id/check-attempt', async (req, res, next) => {
+    try {
+        const user_id = req.user._id;
+        const quiz = await Quiz.findById(req.params.id);
+        if (!quiz) return res.status(404).json({ error: 'Quiz not found' });
+        
+        const previousAttempts = await QuizAttempt.countDocuments({ quiz_id: req.params.id, user_id });
+        const can_attempt = quiz.max_attempts === 0 || previousAttempts < quiz.max_attempts;
+        
+        // Find best score if already attempted
+        let best_attempt = null;
+        if (previousAttempts > 0) {
+            best_attempt = await QuizAttempt.findOne({ quiz_id: req.params.id, user_id })
+                .sort({ score: -1 });
+        }
+
+        res.json({
+            can_attempt,
+            attempts_count: previousAttempts,
+            max_attempts: quiz.max_attempts,
+            best_score: best_attempt ? best_attempt.score : null,
+            submitted_at: best_attempt ? best_attempt.submitted_at : null
+        });
+    } catch (err) { next(err); }
+});
+
 // POST create quiz
 router.post('/', async (req, res, next) => {
     try {

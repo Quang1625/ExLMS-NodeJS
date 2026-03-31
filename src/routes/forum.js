@@ -3,6 +3,9 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const { authenticate } = require('../middleware/auth');
+const Notification = require('../models/Notification');
+const User = require('../models/User');
+const socket = require('../../Server/socket');
 const { ForumTag, ForumPost, ForumComment, ForumVote, ForumSavedPost } = require('../models/Forum');
 const { GroupFeedPost, GroupFeedComment } = require('../models/StudyGroup');
 
@@ -105,6 +108,36 @@ router.post('/posts', (req, res, next) => {
         if (post.tag_ids?.length > 0) {
             await ForumTag.updateMany({ _id: { $in: post.tag_ids } }, { $inc: { post_count: 1 } });
         }
+
+        // Notify users
+        try {
+            const author = await User.findById(author_id).select('full_name');
+            const usersToNotify = await User.find({
+                'notification_settings.new_forum_post': true,
+                _id: { $ne: author_id },
+                status: 'ACTIVE'
+            }).select('_id');
+
+            if (usersToNotify.length > 0) {
+                const notifications = usersToNotify.map(u => ({
+                    recipient_id: u._id,
+                    title: `Bài viết mới: ${title}`,
+                    body: `${author?.full_name || 'Ai đó'} vừa đăng bài viết mới trên diễn đàn.`,
+                    type: 'NEW_FORUM_POST',
+                    action_url: `/forum/posts/${post._id}`,
+                    source: { entity_id: post._id, entity_type: 'FORUM_POST' }
+                }));
+                await Notification.insertMany(notifications);
+
+                const io = socket.getIo();
+                usersToNotify.forEach(u => {
+                    io.to(`user_${u._id}`).emit('notification', notifications[0]);
+                });
+            }
+        } catch (notifErr) {
+            console.error('Error sending forum post notifications:', notifErr);
+        }
+
         res.status(201).json(post);
     } catch (err) { next(err); }
 });
@@ -129,6 +162,33 @@ router.post('/posts/:id/comments', async (req, res, next) => {
     try {
         const comment = new ForumComment({ post_id: req.params.id, ...req.body });
         await comment.save();
+
+        // Notify post author
+        try {
+            const post = await ForumPost.findById(req.params.id);
+            if (post && post.author_id?.toString() !== req.body.author_id?.toString()) {
+                const author = await User.findById(req.body.author_id).select('full_name');
+                const postOwner = await User.findById(post.author_id).select('notification_settings');
+
+                if (postOwner && postOwner.notification_settings?.forum_reply) {
+                    const notification = {
+                        recipient_id: post.author_id,
+                        title: 'Phản hồi mới trên diễn đàn',
+                        body: `${author?.full_name || 'Ai đó'} vừa phản hồi bài viết của bạn: "${post.title.substring(0, 30)}..."`,
+                        type: 'FORUM_REPLY',
+                        action_url: `/forum/posts/${post._id}`,
+                        source: { entity_id: post._id, entity_type: 'FORUM_POST' }
+                    };
+                    await Notification.create(notification);
+
+                    const io = socket.getIo();
+                    io.to(`user_${post.author_id}`).emit('notification', notification);
+                }
+            }
+        } catch (notifErr) {
+            console.error('Error sending forum reply notification:', notifErr);
+        }
+
         res.status(201).json(comment);
     } catch (err) { next(err); }
 });

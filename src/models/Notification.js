@@ -11,7 +11,7 @@ const notificationSchema = new mongoose.Schema({
             'JOIN_REQUEST', 'JOIN_APPROVED', 'JOIN_REJECTED',
             'NEW_ASSIGNMENT', 'ASSIGNMENT_DUE_SOON', 'ASSIGNMENT_GRADED',
             'NEW_MEETING', 'MEETING_STARTING_SOON',
-            'NEW_COURSE', 'FORUM_REPLY', 'MENTION', 'CONTENT_REPORTED', 'SYSTEM'
+            'NEW_COURSE', 'NEW_FORUM_POST', 'FORUM_REPLY', 'MENTION', 'CONTENT_REPORTED', 'SYSTEM'
         ]
     },
     action_url: String,

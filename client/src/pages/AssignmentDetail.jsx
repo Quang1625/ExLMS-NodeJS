@@ -124,22 +124,23 @@ export default function AssignmentDetail() {
 
   const isOverdue = new Date(assignment.due_at) < new Date()
   const mySub = assignment.my_submission
-
-  // ---- Views ----
-
   const renderStudentView = () => (
-    <div className="grid-2" style={{ alignItems: 'start', gap: '1.5rem' }}>
-      <div className="card">
-        <h3>Nội dung bài tập</h3>
-        <div style={{ whiteSpace: 'pre-wrap', marginTop: '1rem', lineHeight: 1.5 }}>{assignment.description || 'Không có mô tả'}</div>
+    <div className="grid-2 fade-in" style={{ alignItems: 'start', gap: '2rem' }}>
+      <div className="glass-card-hover" style={{ padding: '2.5rem' }}>
+        <h3 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '1.5rem', color: '#fff' }}>Nội dung bài tập</h3>
+        <div style={{ whiteSpace: 'pre-wrap', lineHeight: 1.6, color: 'var(--text-2)', fontSize: '1rem' }}>
+          {assignment.description || 'Không có mô tả chi tiết cho bài tập này.'}
+        </div>
         
         {assignment.attachments?.length > 0 && (
-          <div style={{ marginTop: '1.5rem' }}>
-            <h4>📎 File đính kèm ({assignment.attachments.length})</h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem' }}>
+          <div style={{ marginTop: '2.5rem', paddingTop: '2rem', borderTop: '1px solid var(--border)' }}>
+            <h4 style={{ fontSize: '1.1rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              📎 Tài liệu đính kèm ({assignment.attachments.length})
+            </h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               {assignment.attachments.map(f => (
-                <a key={f._id} href={f.file_url} target="_blank" rel="noreferrer" className="tag tag--primary" style={{ display: 'inline-block', width: 'fit-content' }}>
-                  📄 {f.file_name} ({(f.file_size / 1024 / 1024).toFixed(2)} MB)
+                <a key={f._id} href={f.file_url} target="_blank" rel="noreferrer" className="btn btn-secondary btn-sm" style={{ justifyContent: 'flex-start', padding: '12px 16px', borderRadius: '12px' }}>
+                  📄 {f.file_name} <span style={{ opacity: 0.5, fontSize: '0.75rem', marginLeft: 'auto' }}>({(f.file_size / 1024 / 1024).toFixed(2)} MB)</span>
                 </a>
               ))}
             </div>
@@ -147,83 +148,86 @@ export default function AssignmentDetail() {
         )}
       </div>
 
-      <div className="card">
-        <h3>Tình trạng nộp bài</h3>
-        <div style={{ marginTop: '1rem', background: 'var(--bg-2)', padding: '1rem', borderRadius: 8 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-            <span style={{ color: 'var(--text-3)' }}>Trạng thái:</span>
-            <strong>
-              {!mySub ? (isOverdue ? <span style={{ color:'var(--danger)' }}>Chưa nộp (Quá hạn)</span> : <span>Chưa nộp</span>)
-               : mySub.status === 'LATE' ? <span style={{ color:'var(--warning)' }}>Nộp trễ</span>
-               : mySub.status === 'GRADED' ? <span style={{ color:'var(--success)' }}>Đã chấm điểm</span>
-               : <span style={{ color:'var(--primary)' }}>Đã nộp</span>}
-            </strong>
+      <div className="glass-card-hover" style={{ padding: '2.5rem' }}>
+        <h3 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '1.5rem', color: '#fff' }}>Tình trạng nộp bài</h3>
+        
+        <div style={{ background: 'var(--bg-3)', padding: '1.5rem', borderRadius: '20px', marginBottom: '2rem', border: '1px solid var(--border)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', alignItems: 'center' }}>
+            <span style={{ color: 'var(--text-3)', fontWeight: 600 }}>Trạng thái:</span>
+            <div className={`status-badge ${
+              !mySub ? (isOverdue ? 'status-badge--danger' : '')
+               : mySub.status === 'LATE' ? 'status-badge--warning'
+               : mySub.status === 'GRADED' ? 'status-badge--success'
+               : 'status-badge--primary'
+            }`}>
+              {!mySub ? (isOverdue ? 'Quá hạn' : 'Chưa nộp')
+               : mySub.status === 'LATE' ? 'Nộp trễ'
+               : mySub.status === 'GRADED' ? 'Đã chấm điểm'
+               : 'Đã nộp'}
+            </div>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-            <span style={{ color: 'var(--text-3)' }}>Hạn nộp:</span>
-            <strong>{new Date(assignment.due_at).toLocaleString('vi-VN')} {isOverdue && '⚠️'}</strong>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ color: 'var(--text-3)', fontWeight: 600 }}>Hạn nộp:</span>
+            <strong style={{ fontSize: '0.95rem' }}>{new Date(assignment.due_at).toLocaleString('vi-VN')}</strong>
           </div>
 
           {mySub?.grade?.status === 'GRADED' && (
-            <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--border)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                <span style={{ color: 'var(--text-3)' }}>Điểm số:</span>
-                <strong style={{ fontSize: '1.25rem', color: 'var(--primary-2)' }}>
-                  {mySub.grade.score} / {assignment.max_score}
-                </strong>
+            <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid var(--border)' }}>
+              <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+                <div style={{ fontSize: '0.875rem', color: 'var(--text-3)', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>Điểm số đạt được</div>
+                <div style={{ fontSize: '3rem', fontWeight: 900, color: 'var(--primary-2)', lineHeight: 1 }}>
+                  {mySub.grade.score}<span style={{ fontSize: '1.5rem', opacity: 0.5, fontWeight: 500 }}>/{assignment.max_score}</span>
+                </div>
               </div>
               {mySub.grade.feedback && (
-                <div style={{ background: 'var(--bg-3)', padding: '0.75rem', borderRadius: 4, marginTop: '0.5rem', fontSize: '0.875rem' }}>
-                  <strong>Nhận xét:</strong> {mySub.grade.feedback}
+                <div style={{ background: 'rgba(108, 99, 255, 0.05)', padding: '1rem', borderRadius: '12px', border: '1px solid rgba(108, 99, 255, 0.1)' }}>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--primary-2)', fontWeight: 700, marginBottom: '4px' }}>PHẢN HỒI TỪ GIẢNG VIÊN:</div>
+                  <p style={{ fontSize: '0.9rem', color: 'var(--text-2)', lineHeight: 1.5 }}>"{mySub.grade.feedback}"</p>
                 </div>
               )}
             </div>
           )}
         </div>
 
-        {/* Upload Form */}
         {(!isOverdue || assignment.allow_late) && (!mySub || mySub.status !== 'GRADED') && (
-          <form style={{ marginTop: '1.5rem' }} onSubmit={handleStudentSubmit}>
-            <h4>Cập nhật bài làm</h4>
+          <form onSubmit={handleStudentSubmit} className="fade-in">
+            <h4 style={{ marginBottom: '1rem', fontWeight: 700 }}>{mySub ? 'Cập nhật lại bài làm' : 'Nộp bài làm mới'}</h4>
+            
             {['TEXT', 'MIXED'].includes(assignment.submission_type) && (
-              <textarea 
-                className="input" 
-                rows="4" 
-                placeholder="Nhập câu trả lời bằng văn bản..."
-                value={textContent}
-                onChange={e => setTextContent(e.target.value)}
-                style={{ marginTop: '0.5rem', marginBottom: '1rem' }}
-              />
+              <div className="form-group">
+                <textarea 
+                  className="form-input" 
+                  rows="5" 
+                  placeholder="Nhập nội dung bài làm của bạn tại đây..."
+                  value={textContent}
+                  onChange={e => setTextContent(e.target.value)}
+                  style={{ borderRadius: '16px' }}
+                />
+              </div>
             )}
             
             {['FILE', 'MIXED'].includes(assignment.submission_type) && (
-              <div style={{ marginBottom: '1rem' }}>
+              <div className="form-group">
                 <input 
-                  type="file" 
-                  multiple 
-                  ref={fileInputRef}
-                  style={{ display: 'none' }}
+                  type="file" multiple ref={fileInputRef} style={{ display: 'none' }}
                   onChange={e => setStudentFiles(e.target.files)}
-                  accept=".pdf,.doc,.docx,.ppt,.pptx,.zip,.txt"
                 />
-                <div 
-                  onClick={() => fileInputRef.current?.click()}
-                  style={{ border: '2px dashed var(--border)', padding: '2rem', textAlign: 'center', borderRadius: 8, cursor: 'pointer', background: 'var(--bg-2)' }}
-                >
-                  {studentFiles.length > 0 ? (
-                    <strong>Đã chọn {studentFiles.length} file đính kèm.</strong>
-                  ) : (
-                     <div style={{ color: 'var(--text-3)' }}>
-                       <div style={{ fontSize: '2rem' }}>☁️</div>
-                       Click để chọn file bài làm (Tối đa 25MB)
-                     </div>
-                  )}
+                <div className="dropzone-modern" onClick={() => fileInputRef.current?.click()}>
+                  <div className="dropzone-modern__icon">
+                    {studentFiles.length > 0 ? '✅' : '📤'}
+                  </div>
+                  <div style={{ fontWeight: 700 }}>
+                    {studentFiles.length > 0 ? `Đã chọn ${studentFiles.length} tệp tin` : 'Tải lên các tệp tin bài làm'}
+                  </div>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--text-3)' }}>
+                    Kéo thả hoặc click để chọn (Tối đa 25MB)
+                  </div>
                 </div>
               </div>
             )}
             
-            <button className="btn btn-primary" type="submit" disabled={submitting} style={{ width: '100%', justifyContent: 'center' }}>
-              {submitting ? 'Đang tải lên...' : 'Nộp bài'}
+            <button className="btn btn-primary" type="submit" disabled={submitting} style={{ width: '100%', justifyContent: 'center', padding: '1rem', borderRadius: '16px', fontSize: '1rem' }}>
+              {submitting ? '🚀 Đang gửi bài...' : '✨ Xác nhận nộp bài'}
             </button>
           </form>
         )}
@@ -232,132 +236,82 @@ export default function AssignmentDetail() {
   )
 
   const renderAdminView = () => (
-    <div>
-      <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid var(--border)', marginBottom: '1.5rem' }}>
+    <div className="fade-in">
+      <div className="tab-nav">
         <button 
-          className={`tab-btn ${activeTab === 'content' ? 'active' : ''}`}
+          className={`tab-nav__btn ${activeTab === 'content' ? 'active' : ''}`}
           onClick={() => setActiveTab('content')}
-          style={{ padding: '0.75rem 1rem', background: 'none', border: 'none', borderBottom: activeTab === 'content' ? '2px solid var(--primary)' : '2px solid transparent', color: activeTab === 'content' ? 'var(--primary)' : 'var(--text-2)', fontWeight: 600, cursor: 'pointer' }}
         >Nội dung & Cài đặt</button>
         <button 
-          className={`tab-btn ${activeTab === 'submissions' ? 'active' : ''}`}
+          className={`tab-nav__btn ${activeTab === 'submissions' ? 'active' : ''}`}
           onClick={() => setActiveTab('submissions')}
-          style={{ padding: '0.75rem 1rem', background: 'none', border: 'none', borderBottom: activeTab === 'submissions' ? '2px solid var(--primary)' : '2px solid transparent', color: activeTab === 'submissions' ? 'var(--primary)' : 'var(--text-2)', fontWeight: 600, cursor: 'pointer' }}
-        >Bài nộp & Chấm điểm ({dashboard.filter(d => d.submission).length}/{dashboard.length})</button>
+        >
+          Bài nộp ({dashboard.filter(d => d.submission).length}/{dashboard.length})
+        </button>
       </div>
 
       {activeTab === 'content' && (
-        <form className="card" onSubmit={handleEditAssignment} style={{ borderTop: '4px solid var(--primary)', borderRadius: '12px', padding: '2rem' }}>
-          <div style={{ marginBottom: '2rem' }}>
-            <h3 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text)', marginBottom: '0.5rem' }}>✨ Cập nhật Bài tập</h3>
-            <p style={{ color: 'var(--text-3)', fontSize: '0.9rem' }}>Chỉnh sửa thông tin chi tiết, hình thức nộp và tài liệu đính kèm cho bài tập này.</p>
+        <form className="glass-card-hover" onSubmit={handleEditAssignment} style={{ padding: '3rem' }}>
+          <div style={{ marginBottom: '2.5rem' }}>
+            <h2 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '0.5rem', color: '#fff' }}>⚙️ Cài đặt Bài tập</h2>
+            <p style={{ color: 'var(--text-3)' }}>Quản lý chi tiết bài tập, tài liệu và các thiết lập nộp bài.</p>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            {/* Group 1: General Info */}
-            <div style={{ padding: '1.5rem', background: 'var(--bg-2)', borderRadius: '12px', border: '1px solid var(--border)' }}>
-              <h4 style={{ marginBottom: '1rem', color: 'var(--primary-2)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span>📝</span> Thông tin chung
-              </h4>
-              <div className="grid-2" style={{ gap: '1.25rem' }}>
-                <div style={{ gridColumn: '1 / -1' }}>
-                  <label className="label" style={{ fontWeight: 600 }}>Tiêu đề bài tập</label>
-                  <input name="title" className="input" defaultValue={assignment.title} required style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)', width: '100%', transition: 'all 0.2s', outline: 'none' }} />
-                </div>
-                <div style={{ gridColumn: '1 / -1' }}>
-                  <label className="label" style={{ fontWeight: 600 }}>Nội dung / Mô tả</label>
-                  <textarea name="description" className="input" rows="5" defaultValue={assignment.description} style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)', width: '100%', resize: 'vertical' }}></textarea>
-                </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+            <div className="grid-2" style={{ gap: '2rem' }}>
+              <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+                <label className="form-label">Tiêu đề bài tập</label>
+                <input name="title" className="form-input" defaultValue={assignment.title} required style={{ borderRadius: '12px' }} />
+              </div>
+              <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+                <label className="form-label">Mô tả bài tập</label>
+                <textarea name="description" className="form-input" rows="6" defaultValue={assignment.description} style={{ borderRadius: '16px' }}></textarea>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Hạn nộp</label>
+                <input name="due_at" type="datetime-local" className="form-input" defaultValue={new Date(assignment.due_at).toISOString().slice(0, 16)} required style={{ borderRadius: '12px' }} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Điểm tối đa</label>
+                <input name="max_score" type="number" className="form-input" defaultValue={assignment.max_score} required style={{ borderRadius: '12px' }} />
               </div>
             </div>
 
-            {/* Group 2: Settings */}
-            <div style={{ padding: '1.5rem', background: 'var(--bg-2)', borderRadius: '12px', border: '1px solid var(--border)' }}>
-              <h4 style={{ marginBottom: '1rem', color: 'var(--primary-2)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span>⚙️</span> Cài đặt nộp bài
-              </h4>
-              <div className="grid-2" style={{ gap: '1.25rem' }}>
-                <div>
-                  <label className="label" style={{ fontWeight: 600 }}>Hạn nộp</label>
-                  <input name="due_at" type="datetime-local" className="input" defaultValue={new Date(assignment.due_at).toISOString().slice(0, 16)} required style={{ padding: '0.75rem', borderRadius: '8px' }} />
-                </div>
-                <div>
-                  <label className="label" style={{ fontWeight: 600 }}>Điểm tối đa</label>
-                  <input name="max_score" type="number" className="input" defaultValue={assignment.max_score} required style={{ padding: '0.75rem', borderRadius: '8px' }} />
-                </div>
-                <div>
-                  <label className="label" style={{ fontWeight: 600 }}>Hình thức nộp</label>
-                  <select name="submission_type" className="input" defaultValue={assignment.submission_type} style={{ padding: '0.75rem', borderRadius: '8px', backgroundColor: 'var(--bg-1)' }}>
-                    <option value="FILE">Chỉ Upload File</option>
-                    <option value="TEXT">Chỉ Văn bản</option>
-                    <option value="MIXED">Cả hai</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            {/* Group 3: Attachments */}
-            <div style={{ padding: '1.5rem', background: 'var(--bg-2)', borderRadius: '12px', border: '1px solid var(--border)' }}>
-              <h4 style={{ marginBottom: '1rem', color: 'var(--primary-2)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span>📎</span> Tài liệu đính kèm
-              </h4>
-              <p style={{ color: 'var(--text-3)', fontSize: '0.85rem', marginBottom: '1rem' }}>Sẽ ghi đè các file cũ nếu có tải lên mới. Tối đa 50MB.</p>
+            <div style={{ background: 'var(--bg-3)', padding: '2rem', borderRadius: '24px', border: '1px solid var(--border)' }}>
+              <h4 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '10px' }}>📎 Quản lý tài liệu</h4>
               
+              <div style={{ marginBottom: '2rem' }}>
+                <input 
+                  type="file" multiple ref={editFileRef} style={{ display: 'none' }}
+                  onChange={e => setEditFiles(e.target.files)}
+                />
+                <div className="dropzone-modern" onClick={() => editFileRef.current?.click()} style={{ background: 'var(--bg-2)' }}>
+                  <div className="dropzone-modern__icon">📂</div>
+                  <div style={{ fontWeight: 700 }}>
+                    {editFiles.length > 0 ? `Đã chọn thêm ${editFiles.length} tệp mới` : 'Tải lên tài liệu hướng dẫn mới'}
+                  </div>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text-3)' }}>Lưu ý: Các tệp mới sẽ được thêm vào danh sách tài liệu.</p>
+                </div>
+              </div>
+
               {assignment.attachments?.length > 0 && (
-                <div style={{ marginBottom: '1.5rem', padding: '1rem', background: 'var(--bg-3)', borderRadius: '8px' }}>
-                  <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-2)', marginBottom: '0.75rem' }}>File hiện tại:</div>
-                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <div>
+                  <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-3)', marginBottom: '1rem', textTransform: 'uppercase' }}>Danh sách tài liệu hiện tại:</div>
+                  <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
                     {assignment.attachments.map(f => (
-                      <span key={f._id} className="tag" style={{ background: 'var(--primary-light, #eef2ff)', color: 'var(--primary, #4f46e5)', border: '1px solid var(--border)', padding: '0.4rem 0.8rem', borderRadius: '20px' }}>
-                         📄 {f.file_name}
-                      </span>
+                      <div key={f._id} className="status-badge status-badge--primary" style={{ padding: '8px 16px' }}>
+                        📄 {f.file_name}
+                      </div>
                     ))}
                   </div>
                 </div>
               )}
-              
-              <input 
-                type="file" multiple ref={editFileRef} style={{ display: 'none' }}
-                onChange={e => setEditFiles(e.target.files)}
-              />
-              <div 
-                onClick={() => editFileRef.current?.click()}
-                style={{ 
-                  border: '2px dashed #94a3b8', 
-                  padding: '2.5rem 1rem', 
-                  textAlign: 'center', 
-                  borderRadius: '12px', 
-                  cursor: 'pointer', 
-                  backgroundColor: editFiles.length > 0 ? 'rgba(34, 197, 94, 0.05)' : 'var(--bg-3)',
-                  transition: 'all 0.2s',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: '0.5rem'
-                }}
-                onMouseOver={(e) => e.currentTarget.style.borderColor = 'var(--primary)'}
-                onMouseOut={(e) => e.currentTarget.style.borderColor = '#94a3b8'}
-              >
-                <div style={{ fontSize: '2.5rem', opacity: 0.8 }}>📁</div>
-                <div style={{ fontWeight: 600, color: 'var(--text-2)' }}>
-                  {editFiles.length > 0 ? `Đã chọn ${editFiles.length} file mới` : 'Click để chọn file hoặc kéo thả vào đây'}
-                </div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-3)' }}>Hỗ trợ PDF, DOCX, ZIP, PPTX...</div>
-              </div>
             </div>
             
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
-              <button type="submit" className="btn btn-primary" disabled={savingEdit} style={{ 
-                padding: '0.875rem 2rem', 
-                fontSize: '1rem', 
-                fontWeight: 600, 
-                borderRadius: '8px',
-                boxShadow: '0 4px 6px -1px rgba(79, 70, 229, 0.2), 0 2px 4px -2px rgba(79, 70, 229, 0.2)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem'
-              }}>
-                {savingEdit ? '⏳ Đang lưu...' : '💾 Lưu thay đổi'}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem' }}>
+              <button type="button" className="btn btn-secondary" onClick={() => fetchData()}>Hủy thay đổi</button>
+              <button type="submit" className="btn btn-primary" disabled={savingEdit} style={{ padding: '0.75rem 2rem' }}>
+                {savingEdit ? '⏳ Đang lưu...' : '💾 Cập nhật bài tập'}
               </button>
             </div>
           </div>
@@ -365,12 +319,15 @@ export default function AssignmentDetail() {
       )}
 
       {activeTab === 'submissions' && (
-        <div className="card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-            <h3>Thống kê Bài nộp</h3>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <button className="btn btn-secondary btn-sm" onClick={handleExport}>📊 Xuất Excel</button>
-              <button className="btn btn-secondary btn-sm" onClick={handleZip}>📦 Tải ZIP Tất cả</button>
+        <div className="glass-card-hover" style={{ padding: '2.5rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+            <div>
+              <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#fff' }}>🗳️ Danh sách bài nộp</h2>
+              <p style={{ color: 'var(--text-3)' }}>Theo dõi, quản lý và chấm điểm bài làm của sinh viên.</p>
+            </div>
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <button className="btn btn-secondary btn-sm" onClick={handleExport} style={{ borderRadius: '12px' }}>📊 Xuất báo cáo</button>
+              <button className="btn btn-primary btn-sm" onClick={handleZip} style={{ borderRadius: '12px' }}>📦 Tải tất cả ZIP</button>
             </div>
           </div>
           
@@ -381,64 +338,78 @@ export default function AssignmentDetail() {
                   <th>Sinh viên</th>
                   <th>Trạng thái</th>
                   <th>Thời gian nộp</th>
-                  <th>Bài làm</th>
-                  <th>Điểm</th>
-                  <th>Hành động</th>
+                  <th>Tệp đính kèm</th>
+                  <th>Điểm số</th>
+                  <th style={{ textAlign: 'right' }}>Thao tác</th>
                 </tr>
               </thead>
               <tbody>
                 {dashboard.map(d => (
                   <tr key={d.student._id}>
                     <td>
-                      <div style={{ fontWeight: 600 }}>{d.student.full_name}</div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-3)' }}>{d.student.email}</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div className="avatar" style={{ width: '32px', height: '32px', fontSize: '0.75rem' }}>
+                          {d.student.full_name.split(' ').pop()[0]}
+                        </div>
+                        <div>
+                          <div style={{ fontWeight: 700, color: '#fff' }}>{d.student.full_name}</div>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--text-3)' }}>{d.student.email}</div>
+                        </div>
+                      </div>
                     </td>
                     <td>
-                      {d.status === 'PENDING' ? <span className="tag">Chưa nộp</span>
-                       : d.status === 'LATE_NO_SUBMISSION' ? <span className="tag tag--danger">Quá hạn</span>
-                       : d.status === 'LATE' ? <span className="tag tag--warning">Nộp trễ</span>
-                       : d.status === 'GRADED' ? <span className="tag tag--success">Đã chấm</span>
-                       : <span className="tag tag--primary">Đã nộp</span>}
+                      <div className={`status-badge ${
+                        d.status === 'PENDING' ? ''
+                         : d.status === 'LATE_NO_SUBMISSION' ? 'status-badge--danger'
+                         : d.status === 'LATE' ? 'status-badge--warning'
+                         : d.status === 'GRADED' ? 'status-badge--success'
+                         : 'status-badge--primary'
+                      }`}>
+                        {d.status === 'PENDING' ? 'Chưa nộp'
+                         : d.status === 'LATE_NO_SUBMISSION' ? 'Quá hạn'
+                         : d.status === 'LATE' ? 'Nộp trễ'
+                         : d.status === 'GRADED' ? 'Đã chấm'
+                         : 'Đã nộp'}
+                      </div>
                     </td>
                     <td>
-                      {d.submission ? new Date(d.submission.submitted_at).toLocaleString('vi-VN') : '—'}
+                      {d.submission ? (
+                        <div style={{ fontSize: '0.85rem' }}>
+                          <div style={{ fontWeight: 600 }}>{new Date(d.submission.submitted_at).toLocaleDateString('vi-VN')}</div>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--text-3)' }}>{new Date(d.submission.submitted_at).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</div>
+                        </div>
+                      ) : '—'}
                     </td>
                     <td>
                       {d.submission?.files?.length > 0 ? (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                          {d.submission.files.map(f => (
-                            <a key={f._id} href={f.file_url} target="_blank" rel="noreferrer" title={f.file_name}>
-                              📄 {f.file_name.length > 20 ? f.file_name.slice(0, 20) + '...' : f.file_name}
-                            </a>
-                          ))}
+                        <div className="status-badge status-badge--primary" style={{ cursor: 'pointer' }} onClick={() => window.open(d.submission.files[0].file_url, '_blank')}>
+                          📄 {d.submission.files.length} Tệp
                         </div>
                       ) : d.submission?.text_content ? (
-                        <span style={{ color: 'var(--text-3)', fontSize: '0.85rem' }}>Chỉ Text</span>
+                        <div className="status-badge" style={{ opacity: 0.6 }}>📝 Văn bản</div>
                       ) : '—'}
                     </td>
                     <td>
                       {d.submission?.grade?.status === 'GRADED' ? (
-                        <strong style={{ color: 'var(--primary-2)' }}>{d.submission.grade.score} / {assignment.max_score}</strong>
+                        <strong style={{ color: 'var(--primary-2)', fontSize: '1.1rem' }}>{d.submission.grade.score} <span style={{ fontSize: '0.8rem', opacity: 0.5 }}>/{assignment.max_score}</span></strong>
                       ) : '—'}
                     </td>
-                    <td>
+                    <td style={{ textAlign: 'right' }}>
                       <button 
-                        className="btn btn-sm btn-primary" 
+                        className={`btn btn-sm ${d.submission?.grade?.status === 'GRADED' ? 'btn-secondary' : 'btn-primary'}`}
                         disabled={!d.submission}
+                        style={{ borderRadius: '10px' }}
                         onClick={() => setGradeModal({
                           _id: d.submission._id,
                           score: d.submission.grade?.score,
                           feedback: d.submission.grade?.feedback
                         })}
                       >
-                        Chấm điểm
+                        {d.submission?.grade?.status === 'GRADED' ? 'Sửa điểm' : 'Chấm điểm'}
                       </button>
                     </td>
                   </tr>
                 ))}
-                {dashboard.length === 0 && (
-                  <tr><td colSpan="6" style={{ textAlign: 'center', padding: '1rem' }}>Chưa có sinh viên nào trong nhóm học này</td></tr>
-                )}
               </tbody>
             </table>
           </div>
@@ -447,28 +418,33 @@ export default function AssignmentDetail() {
       
       {gradeModal && (
         <div className="modal-overlay" onClick={() => setGradeModal(null)}>
-          <div className="modal-content card" onClick={e => e.stopPropagation()} style={{ width: 400 }}>
-            <h3>Chấm điểm bài nộp</h3>
-            <form onSubmit={handleGrade} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
-              <div>
-                <label className="label">Điểm số (Tối đa {assignment.max_score})</label>
+          <div className="modal-content fade-in" onClick={e => e.stopPropagation()} style={{ maxWidth: '450px' }}>
+            <button className="modal-close" onClick={() => setGradeModal(null)}>×</button>
+            <h2 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: '1.5rem', color: '#fff' }}>Chấm điểm</h2>
+            
+            <form onSubmit={handleGrade} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div className="form-group">
+                <label className="form-label">Điểm số (Thang điểm {assignment.max_score})</label>
                 <input 
-                  type="number" className="input" max={assignment.max_score} min={0} required
+                  type="number" className="form-input" max={assignment.max_score} min={0} required
                   value={gradeModal.score || ''} autoFocus
                   onChange={e => setGradeModal({...gradeModal, score: Number(e.target.value)})}
+                  style={{ borderRadius: '12px', fontSize: '1.25rem', fontWeight: 700 }}
                 />
               </div>
-              <div>
-                <label className="label">Nhận xét (Feedback)</label>
+              <div className="form-group">
+                <label className="form-label">Nhận xét & Góp ý</label>
                 <textarea 
-                  className="input" rows="4" 
+                  className="form-input" rows="4" 
+                  placeholder="Nhập nhận xét cho sinh viên..."
                   value={gradeModal.feedback || ''}
                   onChange={e => setGradeModal({...gradeModal, feedback: e.target.value})}
+                  style={{ borderRadius: '16px' }}
                 ></textarea>
               </div>
-              <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '1rem' }}>
-                <button type="button" className="btn btn-secondary" onClick={() => setGradeModal(null)}>Hủy</button>
-                <button type="submit" className="btn btn-primary">Lưu điểm</button>
+              <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                <button type="button" className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setGradeModal(null)}>Hủy</button>
+                <button type="submit" className="btn btn-primary" style={{ flex: 2 }}>💾 Lưu kết quả</button>
               </div>
             </form>
           </div>
@@ -479,22 +455,31 @@ export default function AssignmentDetail() {
 
   return (
     <Layout>
-      <button className="btn btn-secondary btn-sm" style={{ marginBottom:'1.5rem' }} onClick={() => navigate('/assignments')}>
-        ← Quay lại Danh sách
-      </button>
+      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+        <button className="btn btn-secondary btn-sm" style={{ marginBottom:'2rem', borderRadius: '12px' }} onClick={() => navigate('/assignments')}>
+          ← Quay lại danh sách
+        </button>
 
-      <div className="page-header">
-        <h1>{assignment.title}</h1>
-        <div style={{ display:'flex', gap:'0.75rem', marginTop:'0.75rem', flexWrap:'wrap' }}>
-          <span className="tag tag--primary">👤 {assignment.created_by?.full_name}</span>
-          <span className="tag tag--primary">📁 Nhóm: {assignment.group_id?.name}</span>
-          <span className="tag tag--warning">⏰ Hạn nộp: {new Date(assignment.due_at).toLocaleString('vi-VN')}</span>
-          <span className="tag">💯 Điểm tối đa: {assignment.max_score}</span>
+        <div className="page-header" style={{ marginBottom: '2.5rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1.5rem' }}>
+            <div>
+              <h1 style={{ fontSize: '2.5rem', fontWeight: 800, letterSpacing: '-0.03em', background: 'linear-gradient(135deg, #fff 0%, var(--text-2) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                {assignment.title}
+              </h1>
+              <div style={{ display:'flex', gap:'0.75rem', marginTop:'1rem', flexWrap:'wrap' }}>
+                <span className="status-badge status-badge--primary">👤 {assignment.created_by?.full_name}</span>
+                <span className="status-badge status-badge--primary">📁 {assignment.group_id?.name}</span>
+                <span className={`status-badge ${isOverdue ? 'status-badge--danger' : 'status-badge--warning'}`}>
+                  ⏰ Hạn nộp: {new Date(assignment.due_at).toLocaleString('vi-VN')}
+                </span>
+                <span className="status-badge">💯 Tối đa: {assignment.max_score}</span>
+              </div>
+            </div>
+          </div>
         </div>
+
+        {canManage ? renderAdminView() : renderStudentView()}
       </div>
-
-      {canManage ? renderAdminView() : renderStudentView()}
-
     </Layout>
   )
 }

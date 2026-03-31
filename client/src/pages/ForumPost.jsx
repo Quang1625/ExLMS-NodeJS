@@ -10,7 +10,7 @@ export default function ForumPost() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { user } = useAuth()
-  
+
   // All hooks at the VERY top
   const [data, setData] = useState(null)
   const [comment, setComment] = useState('')
@@ -46,13 +46,13 @@ export default function ForumPost() {
   const handleAddComment = async (parentId = null) => {
     const actualParentId = (parentId && typeof parentId === 'string') ? parentId : null
     const text = actualParentId ? replyContent : comment
-    
+
     if (!text.trim()) return
     try {
-      await api.post(`/forum/posts/${id}/comments`, { 
-        content: text, 
+      await api.post(`/forum/posts/${id}/comments`, {
+        content: text,
         author_id: user?._id,
-        parent_id: actualParentId 
+        parent_id: actualParentId
       })
       const res = await api.get(`/forum/posts/${id}`)
       setData(res.data)
@@ -110,11 +110,11 @@ export default function ForumPost() {
             </div>
             <p style={{ fontSize: '1rem', color: 'var(--text-2)', lineHeight: 1.6 }}>{c.content}</p>
             <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-              <LikeButton 
-                post={c} 
-                user={user} 
-                targetType="FORUM_COMMENT" 
-                initialVoteType={userVotes.find(v => v.target_id === c._id)?.vote_type === 'UPVOTE' ? 'LIKE' : userVotes.find(v => v.target_id === c._id)?.vote_type} 
+              <LikeButton
+                post={c}
+                user={user}
+                targetType="FORUM_COMMENT"
+                initialVoteType={userVotes.find(v => v.target_id === c._id)?.vote_type === 'UPVOTE' ? 'LIKE' : userVotes.find(v => v.target_id === c._id)?.vote_type}
               />
               {c.is_accepted && <span className="tag tag--success" style={{ borderRadius: '8px', fontWeight: 600 }}>✅ Giải pháp</span>}
               <button className="vote-btn" style={{ fontSize: '0.85rem' }} onClick={() => setReplyTo(isReplying ? null : c._id)}>
@@ -124,9 +124,9 @@ export default function ForumPost() {
 
             {isReplying && (
               <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--border)' }}>
-                <textarea 
-                  className="form-input" 
-                  rows={2} 
+                <textarea
+                  className="form-input"
+                  rows={2}
                   placeholder="Viết phản hồi..."
                   style={{ background: 'var(--bg-2)', fontSize: '0.9rem' }}
                   value={replyContent}
@@ -167,10 +167,10 @@ export default function ForumPost() {
             {canDelete && <button className="btn btn-danger btn-sm" style={{ borderRadius: '12px', padding: '6px 16px' }} onClick={handleDelete}>Xóa bài</button>}
           </div>
 
-          <div className="card" style={{ 
-            marginBottom: '2rem', 
-            padding: '2.5rem', 
-            borderRadius: '32px', 
+          <div className="card" style={{
+            marginBottom: '2rem',
+            padding: '2.5rem',
+            borderRadius: '32px',
             background: 'var(--bg-2)',
             border: '1px solid var(--border)',
             boxShadow: 'var(--shadow-lg)'
@@ -180,16 +180,16 @@ export default function ForumPost() {
                 <span key={t._id} className="tag" style={{ background: t.color + '15', color: t.color, fontWeight: 700, padding: '4px 12px', fontSize: '0.8rem' }}>{t.name}</span>
               ))}
             </div>
-            
+
             <h1 style={{ fontSize: '2.5rem', fontWeight: 800, marginBottom: '1.5rem', lineHeight: 1.2, color: '#fff' }}>{post.title}</h1>
-            
-            <div style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '1.5rem', 
-              marginBottom: '2.5rem', 
-              padding: '1rem', 
-              background: 'var(--glass)', 
+
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '1.5rem',
+              marginBottom: '2.5rem',
+              padding: '1rem',
+              background: 'var(--glass)',
               borderRadius: '20px',
               border: '1px solid var(--border)'
             }}>
@@ -202,16 +202,13 @@ export default function ForumPost() {
                   Đăng vào {new Date(post.created_at).toLocaleDateString('vi-VN', { day: 'numeric', month: 'long', year: 'numeric' })}
                 </span>
               </div>
-              <div style={{ marginLeft: 'auto', display: 'flex', gap: '1.5rem', color: 'var(--text-3)', fontSize: '0.9rem' }}>
-                <span title="Lượt xem">👁️ {post.view_count}</span>
-                <span title="Lượt thích">👍 {post.upvote_count}</span>
-              </div>
+
             </div>
 
-            <div style={{ 
-              lineHeight: 1.8, 
-              color: 'var(--text-2)', 
-              whiteSpace: 'pre-wrap', 
+            <div style={{
+              lineHeight: 1.8,
+              color: 'var(--text-2)',
+              whiteSpace: 'pre-wrap',
               fontSize: '1.1rem',
               marginBottom: '2.5rem'
             }}>
@@ -227,16 +224,16 @@ export default function ForumPost() {
                     if (isMedia) {
                       return (
                         <div key={a.object_key} style={{ borderRadius: '20px', overflow: 'hidden', border: '1px solid var(--border)', background: 'var(--bg-3)', maxWidth: '100%' }}>
-                          <MediaRenderer 
-                            url={a.object_key} 
-                            type={a.mime_type?.startsWith('video/') ? 'VIDEO' : 'IMAGE'} 
+                          <MediaRenderer
+                            url={a.object_key}
+                            type={a.mime_type?.startsWith('video/') ? 'VIDEO' : 'IMAGE'}
                             style={{ maxWidth: '100%', maxHeight: 600 }}
                           />
                         </div>
                       );
                     }
                     return (
-                      <a key={a.object_key} href={a.object_key} target="_blank" rel="noreferrer" className="tag" 
+                      <a key={a.object_key} href={a.object_key} target="_blank" rel="noreferrer" className="tag"
                         style={{ background: 'var(--bg-3)', color: 'var(--primary-2)', padding: '10px 20px', borderRadius: '14px', border: '1px solid var(--border)', fontSize: '0.9rem' }}>
                         📄 {a.filename}
                       </a>
@@ -247,27 +244,27 @@ export default function ForumPost() {
             )}
 
             <div style={{ display: 'flex', gap: '1rem', marginTop: '2.5rem', paddingTop: '1.5rem', borderTop: '1px solid var(--border)' }}>
-              <LikeButton 
-                post={post} 
-                user={user} 
-                targetType="FORUM_POST" 
-                initialVoteType={userVotes.find(v => v.target_id === post._id)?.vote_type === 'UPVOTE' ? 'LIKE' : userVotes.find(v => v.target_id === post._id)?.vote_type} 
+              <LikeButton
+                post={post}
+                user={user}
+                targetType="FORUM_POST"
+                initialVoteType={userVotes.find(v => v.target_id === post._id)?.vote_type === 'UPVOTE' ? 'LIKE' : userVotes.find(v => v.target_id === post._id)?.vote_type}
               />
               <button className="btn btn-secondary" style={{ borderRadius: '14px' }}>🔖 Lưu bài</button>
             </div>
           </div>
 
-          <div className="card" style={{ 
-            padding: '2.5rem', 
-            borderRadius: '32px', 
+          <div className="card" style={{
+            padding: '2.5rem',
+            borderRadius: '32px',
             background: 'var(--bg-2)',
             border: '1px solid var(--border)'
           }}>
             <h3 style={{ marginBottom: '2rem', fontSize: '1.5rem', fontWeight: 700 }}>💬 {comments.length} bình luận</h3>
-            
-            <div style={{ 
-              display: 'flex', 
-              gap: '1rem', 
+
+            <div style={{
+              display: 'flex',
+              gap: '1rem',
               marginBottom: '3rem',
               padding: '1.5rem',
               background: 'var(--bg-3)',
@@ -278,7 +275,7 @@ export default function ForumPost() {
                 {user?.full_name?.charAt(0) || 'U'}
               </div>
               <div style={{ flex: 1 }}>
-                <textarea className="form-input" rows={3} 
+                <textarea className="form-input" rows={3}
                   style={{ background: 'transparent', border: 'none', padding: 0, fontSize: '1rem', resize: 'none' }}
                   placeholder="Bạn nghĩ gì về bài viết này?"
                   value={comment} onChange={e => setComment(e.target.value)} />

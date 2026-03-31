@@ -28,6 +28,7 @@ const userSchema = new mongoose.Schema({
         new_meeting: { type: Boolean, default: true },
         meeting_starting_soon: { type: Boolean, default: true },
         new_course: { type: Boolean, default: true },
+        new_forum_post: { type: Boolean, default: true },
         forum_reply: { type: Boolean, default: true },
         mention: { type: Boolean, default: true },
         group_join_request: { type: Boolean, default: true },

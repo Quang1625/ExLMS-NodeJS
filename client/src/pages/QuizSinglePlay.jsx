@@ -21,6 +21,14 @@ export default function QuizSinglePlay() {
   useEffect(() => {
     const fetchQuiz = async () => {
       try {
+        // Check if allowed first
+        const { data: check } = await api.get(`/quizzes/${id}/check-attempt`);
+        if (!check.can_attempt) {
+          alert(`Bạn đã hết lượt làm bài cho kỳ thi này! Điểm cao nhất: ${check.best_score}%`);
+          navigate('/quiz/dashboard');
+          return;
+        }
+
         const { data } = await api.get(`/quizzes/${id}`)
         setQuiz(data)
         if (data.time_limit_sec) setTimer(data.time_limit_sec)

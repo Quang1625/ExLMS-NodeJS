@@ -70,31 +70,39 @@ export default function Calendar() {
 
   return (
     <Layout>
-      <div className="page-header">
-        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+      <div className="page-header" style={{ marginBottom: '3rem' }}>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap: '2rem', flexWrap: 'wrap' }}>
           <div>
-            <h1>Lịch biểu 📅</h1>
-            <p>{MONTHS[month]} {year}</p>
+            <h1 style={{ fontSize: '2.5rem', fontWeight: 800, letterSpacing: '-0.02em', background: 'linear-gradient(135deg, #fff 0%, var(--text-2) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              Lịch biểu 📅
+            </h1>
+            <p style={{ fontSize: '1.1rem', marginTop: '0.5rem', color: 'var(--primary-2)', fontWeight: 600 }}>
+              {MONTHS[month]} {year}
+            </p>
           </div>
-          <div style={{ display:'flex', gap:'0.5rem', alignItems:'center' }}>
-            <button className="btn btn-secondary btn-sm" onClick={() => setDate(new Date(year, month - 1, 1))}>‹ Trước</button>
-            <button className="btn btn-secondary btn-sm" onClick={() => setDate(new Date())}>Hôm nay</button>
-            <button className="btn btn-secondary btn-sm" onClick={() => setDate(new Date(year, month + 1, 1))}>Sau ›</button>
+          <div style={{ display:'flex', gap:'0.75rem', alignItems:'center', background: 'var(--bg-2)', padding: '6px', borderRadius: '16px', border: '1px solid var(--border)' }}>
+            <button className="btn btn-secondary btn-sm" style={{ borderRadius: '12px', border: 'none' }} onClick={() => setDate(new Date(year, month - 1, 1))}>
+              <span style={{ fontSize: '1.2rem' }}>‹</span>
+            </button>
+            <button className="btn btn-primary btn-sm" style={{ borderRadius: '12px', padding: '6px 16px' }} onClick={() => setDate(new Date())}>Hôm nay</button>
+            <button className="btn btn-secondary btn-sm" style={{ borderRadius: '12px', border: 'none' }} onClick={() => setDate(new Date(year, month + 1, 1))}>
+              <span style={{ fontSize: '1.2rem' }}>›</span>
+            </button>
           </div>
         </div>
       </div>
 
       {/* Legend */}
-      <div style={{ display:'flex', gap:'0.75rem', flexWrap:'wrap', marginBottom:'1rem' }}>
+      <div className="calendar-legend">
         {Object.entries(EVENT_COLORS).map(([type, color]) => (
-          <div key={type} style={{ display:'flex', alignItems:'center', gap:'5px', fontSize:'0.75rem', color:'var(--text-3)' }}>
-            <div style={{ width:10, height:10, borderRadius:2, background:color }} />
-            {type.replace('_', ' ')}
+          <div key={type} className="calendar-legend__item">
+            <div className="calendar-legend__dot" style={{ background: color, boxShadow: `0 0 10px ${color}44` }} />
+            {type === 'COURSE_SESSION' ? 'Lịch học' : type.replace('_', ' ')}
           </div>
         ))}
       </div>
 
-      <div className="calendar-grid">
+      <div className="calendar-grid fade-in">
         {DAYS.map(d => <div key={d} className="calendar-day-header">{d}</div>)}
         {cells.map((cell, i) => {
           const evs = cell.type === 'cur' ? eventsOn(cell.day) : []
@@ -105,17 +113,23 @@ export default function Calendar() {
                    if (cell.type === 'cur' && evs.length > 0) setSelectedDay({ day: cell.day, month, year, events: evs })
                  }}
                  style={{ cursor: cell.type === 'cur' && evs.length > 0 ? 'pointer' : 'default' }}>
-              <div className="calendar-cell__num" style={{ color: isToday(cell.day) && cell.type === 'cur' ? 'var(--primary)' : undefined }}>
+              <div className="calendar-cell__num" style={{ color: isToday(cell.day) && cell.type === 'cur' ? 'var(--primary-2)' : undefined }}>
                 {cell.day}
               </div>
-              {evs.slice(0, 3).map(e => (
-                <div key={e._id} className="calendar-event" title={e.title}
-                  onClick={(event) => { event.stopPropagation(); setSelectedEvent(e); }}
-                  style={{ background: (EVENT_COLORS[e.event_type] || '#6c63ff') + '33', color: EVENT_COLORS[e.event_type] || 'var(--primary-2)' }}>
-                  {e.title}
-                </div>
-              ))}
-              {evs.length > 3 && <div style={{ fontSize:'0.65rem', color:'var(--text-3)' }}>+{evs.length - 3} nữa</div>}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                {evs.slice(0, 3).map(e => (
+                  <div key={e._id} className="calendar-event" title={e.title}
+                    onClick={(event) => { event.stopPropagation(); setSelectedEvent(e); }}
+                    style={{ background: (EVENT_COLORS[e.event_type] || '#6c63ff') + '22', color: EVENT_COLORS[e.event_type] || 'var(--primary-2)', borderLeft: `3px solid ${EVENT_COLORS[e.event_type]}` }}>
+                    {e.title}
+                  </div>
+                ))}
+                {evs.length > 3 && (
+                  <div style={{ fontSize:'0.7rem', color:'var(--text-3)', fontWeight: 600, paddingLeft: '4px' }}>
+                    + {evs.length - 3} sự kiện khác
+                  </div>
+                )}
+              </div>
             </div>
           )
         })}
@@ -123,28 +137,33 @@ export default function Calendar() {
 
       {/* Event Details Modal */}
       {selectedEvent && (
-        <div style={{ position:'fixed', top:0, left:0, right:0, bottom:0, background:'rgba(0,0,0,0.6)', zIndex:999, display:'flex', alignItems:'center', justifyContent:'center', backdropFilter:'blur(4px)' }}
-             onClick={() => setSelectedEvent(null)}>
-          <div className="card fade-in" style={{ width:'100%', maxWidth:500, padding:'2rem', background:'var(--bg)', position:'relative' }} onClick={e => e.stopPropagation()}>
-            <button onClick={() => setSelectedEvent(null)} style={{ position:'absolute', top:'1rem', right:'1rem', fontSize:'1.5rem', color:'var(--text-3)' }}>×</button>
-            <h2 style={{ marginBottom:'1rem' }}>Chi tiết lịch trình</h2>
+        <div className="modal-overlay" onClick={() => setSelectedEvent(null)}>
+          <div className="modal-content fade-in" onClick={e => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setSelectedEvent(null)}>×</button>
+            <h2 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: '2rem', color: '#fff' }}>Chi tiết lịch trình</h2>
             {renderEventDetails(selectedEvent)}
+            <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'flex-end' }}>
+              <button className="btn btn-secondary" onClick={() => setSelectedEvent(null)}>Đóng</button>
+            </div>
           </div>
         </div>
       )}
 
       {/* Day Events Modal */}
       {selectedDay && !selectedEvent && (
-        <div style={{ position:'fixed', top:0, left:0, right:0, bottom:0, background:'rgba(0,0,0,0.6)', zIndex:999, display:'flex', alignItems:'center', justifyContent:'center', backdropFilter:'blur(4px)' }}
-             onClick={() => setSelectedDay(null)}>
-          <div className="card fade-in" style={{ width:'100%', maxWidth:600, maxHeight:'80vh', overflowY:'auto', padding:'2rem', background:'var(--bg)', position:'relative' }} onClick={e => e.stopPropagation()}>
-            <button onClick={() => setSelectedDay(null)} style={{ position:'absolute', top:'1rem', right:'1rem', fontSize:'1.5rem', color:'var(--text-3)' }}>×</button>
-            <h2 style={{ marginBottom:'1.5rem' }}>Lịch trình ngày {selectedDay.day}/{selectedDay.month + 1}/{selectedDay.year}</h2>
-            {selectedDay.events.map(e => (
-              <div key={e._id} onClick={() => setSelectedEvent(e)} style={{ cursor: 'pointer' }}>
-                {renderEventDetails(e)}
-              </div>
-            ))}
+        <div className="modal-overlay" onClick={() => setSelectedDay(null)}>
+          <div className="modal-content fade-in" onClick={e => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setSelectedDay(null)}>×</button>
+            <h2 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: '0.5rem', color: '#fff' }}>Lịch trình</h2>
+            <p style={{ color: 'var(--primary-2)', fontWeight: 600, marginBottom: '2.5rem' }}>Ngày {selectedDay.day} thg {selectedDay.month + 1}, {selectedDay.year}</p>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {selectedDay.events.map(e => (
+                <div key={e._id} onClick={() => setSelectedEvent(e)} style={{ cursor: 'pointer', transition: 'transform 0.2s' }} onMouseEnter={e => e.currentTarget.style.transform = 'translateX(8px)'} onMouseLeave={e => e.currentTarget.style.transform = 'translateX(0)'}>
+                  {renderEventDetails(e)}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}

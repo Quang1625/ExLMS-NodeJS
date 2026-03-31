@@ -73,6 +73,51 @@ router.get('/', async (req, res, next) => {
             }
         }
 
+        const { StudyGroup } = require('../models/StudyGroup');
+        const groups = await StudyGroup.find({ 'members.user_id': objId, 'members.status': 'ACTIVE' });
+        const groupIds = groups.map(g => g._id);
+
+        // 3. Fetch assignments for these groups
+        const assignments = await Assignment.find({
+            group_id: { $in: groupIds },
+            status: 'PUBLISHED',
+            due_at: { $gte: sDate, $lte: eDate }
+        }).lean();
+
+        for (const a of assignments) {
+            virtualEvents.push({
+                _id: `assignment-${a._id}`,
+                user_id: user_id,
+                title: `Hạn nộp: ${a.title}`,
+                description: `Bài tập từ nhóm ${groups.find(g => g._id.toString() === a.group_id.toString())?.name || ''}`,
+                start_at: a.due_at,
+                end_at: a.due_at,
+                event_type: 'ASSIGNMENT_DUE',
+                source: { entity_id: a._id, entity_type: 'ASSIGNMENT' }
+            });
+        }
+
+        // 4. Fetch meetings for these groups
+        const meetings = await Meeting.find({
+            group_id: { $in: groupIds },
+            status: { $in: ['SCHEDULED', 'LIVE'] },
+            start_at: { $gte: sDate, $lte: eDate }
+        }).lean();
+
+        for (const m of meetings) {
+            const endAt = new Date(m.start_at.getTime() + (m.duration_minutes || 60) * 60000);
+            virtualEvents.push({
+                _id: `meeting-${m._id}`,
+                user_id: user_id,
+                title: `Lịch họp: ${m.title}`,
+                description: `Họp nhóm ${groups.find(g => g._id.toString() === m.group_id.toString())?.name || ''}`,
+                start_at: m.start_at,
+                end_at: endAt,
+                event_type: 'MEETING',
+                source: { entity_id: m._id, entity_type: 'MEETING' }
+            });
+        }
+
         const allEvents = [...events, ...virtualEvents].sort((a, b) => new Date(a.start_at) - new Date(b.start_at));
         res.json(allEvents);
     } catch (err) { next(err); }

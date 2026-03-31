@@ -99,73 +99,73 @@ export default function Assignments() {
 
       {loading ? <div className="spinner-wrap"><div className="spinner" /></div>
       : assignments.length === 0 ? (
-        <div className="empty-state">
+        <div className="empty-state fade-in">
           <div className="empty-state__icon">📝</div>
           <h3>Chưa có bài tập nào</h3>
           {canManage && <p>Nhấn "Tạo bài tập" để bắt đầu.</p>}
         </div>
       ) : (
-        <div className="card">
-          <div className="table-wrap">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Tên bài tập</th>
-                  <th>Nhóm</th>
-                  <th>Điểm tối đa</th>
-                  <th>Hạn nộp</th>
-                  <th>Trạng thái</th>
-                  {canManage && <th>Hành động</th>}
-                </tr>
-              </thead>
-              <tbody>
-                {assignments.map(a => (
-                  <tr key={a._id} onClick={() => navigate(`/assignments/${a._id}`)} style={{ cursor: 'pointer' }} className="table-row-hover">
-                    <td>
-                      <div style={{ fontWeight: 600, color: 'var(--primary-2)' }}>{a.title}</div>
-                      {a.description && (
-                        <div style={{ fontSize: '0.8125rem', color: 'var(--text-2)', marginTop: 4, whiteSpace: 'pre-wrap', lineHeight: 1.4 }}>
-                          {a.description}
-                        </div>
-                      )}
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-3)', marginTop: 4 }}>
-                        Hình thức: {a.submission_type}
-                      </div>
-                    </td>
-                    <td>{a.group_id?.name || '—'}</td>
-                    <td><span style={{ fontWeight: 700, color: 'var(--primary-2)' }}>{a.max_score}</span></td>
-                    <td>
-                      <div style={{ color: isOverdue(a) ? 'var(--danger)' : 'var(--text)' }}>
-                        {new Date(a.due_at).toLocaleDateString('vi-VN')}
-                        {isOverdue(a) && <div style={{ fontSize: '0.7rem' }}>⚠️ Quá hạn</div>}
-                      </div>
-                    </td>
-                    <td>
-                      <span className={`tag ${STATUS_CLASS[a.status]}`}>{STATUS_LABEL[a.status]}</span>
-                    </td>
-                    {canManage && (
-                      <td>
-                        <div style={{ display: 'flex', gap: 6 }}>
-                          <button
-                            className="btn btn-secondary btn-sm"
-                            onClick={(e) => { e.stopPropagation(); setModal(a) }}
-                            title="Sửa"
-                          >✏️</button>
-                          <button
-                            className="btn btn-sm"
-                            style={{ background: 'var(--danger)', color: '#fff' }}
-                            onClick={(e) => { e.stopPropagation(); handleDelete(a._id) }}
-                            disabled={deleting === a._id}
-                            title="Xóa"
-                          >{deleting === a._id ? '…' : '🗑️'}</button>
-                        </div>
-                      </td>
-                    )}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        <div className="grid-auto fade-in" style={{ gap: '1.5rem' }}>
+          {assignments.map(a => {
+            const overdue = isOverdue(a)
+            return (
+              <div key={a._id} className="glass-card-hover" onClick={() => navigate(`/assignments/${a._id}`)} style={{ cursor: 'pointer' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1rem' }}>
+                  <div className={`status-badge ${STATUS_CLASS[a.status].replace('tag--', 'status-badge--')}`}>
+                    {STATUS_LABEL[a.status]}
+                  </div>
+                  {overdue && <span className="status-badge status-badge--danger">⚠️ Quá hạn</span>}
+                </div>
+
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem', color: '#fff' }}>{a.title}</h3>
+                <p style={{ fontSize: '0.875rem', color: 'var(--text-3)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  👥 {a.group_id?.name || '—'}
+                </p>
+
+                <div style={{ flex: 1 }}>
+                  {a.description && (
+                    <p style={{ fontSize: '0.85rem', color: 'var(--text-2)', lineClamp: 2, WebkitLineClamp: 2, display: '-webkit-box', WebkitBoxOrient: 'vertical', overflow: 'hidden', marginBottom: '1rem' }}>
+                      {a.description}
+                    </p>
+                  )}
+                </div>
+
+                <div style={{ background: 'rgba(255,255,255,0.03)', padding: '12px', borderRadius: '12px', marginBottom: '1.5rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                  <div>
+                    <div style={{ fontSize: '0.65rem', color: 'var(--text-3)', textTransform: 'uppercase', fontWeight: 700 }}>Hạn nộp</div>
+                    <div style={{ fontSize: '0.85rem', fontWeight: 600, color: overdue ? 'var(--danger)' : 'var(--text)' }}>
+                      {new Date(a.due_at).toLocaleDateString('vi-VN')}
+                    </div>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: '0.65rem', color: 'var(--text-3)', textTransform: 'uppercase', fontWeight: 700 }}>Điểm tối đa</div>
+                    <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--primary-2)' }}>{a.max_score}</div>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-3)', fontWeight: 500 }}>
+                    ⌨️ {a.submission_type}
+                  </span>
+                  {canManage && (
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button
+                        className="topbar__icon-btn"
+                        onClick={(e) => { e.stopPropagation(); setModal(a) }}
+                        style={{ width: '32px', height: '32px' }}
+                      >✏️</button>
+                      <button
+                        className="topbar__icon-btn"
+                        onClick={(e) => { e.stopPropagation(); handleDelete(a._id) }}
+                        style={{ width: '32px', height: '32px', color: 'var(--danger)' }}
+                        disabled={deleting === a._id}
+                      >{deleting === a._id ? '…' : '🗑️'}</button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )
+          })}
         </div>
       )}
 

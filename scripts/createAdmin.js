@@ -1,8 +1,8 @@
-
+require('dotenv').config()
 const mongoose = require('mongoose')
 const bcrypt = require('bcryptjs')
 
-const MONGODB_URI = 'mongodb://mongo:27017/ExLMS'
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27018/ExLMS'
 
 const userSchema = new mongoose.Schema({
     email: { type: String, required: true, unique: true },
