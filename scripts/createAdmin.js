@@ -2,7 +2,7 @@
 const mongoose = require('mongoose')
 const bcrypt = require('bcryptjs')
 
-const MONGODB_URI = 'mongodb://localhost:27017/ExLMS'
+const MONGODB_URI = 'mongodb://mongo:27017/ExLMS'
 
 const userSchema = new mongoose.Schema({
     email: { type: String, required: true, unique: true },
