@@ -1,0 +1,68 @@
+services:
+  # ── MongoDB ───────────────────────────────────────────────────────────────────
+  mongo:
+    image: mongo:7
+    container_name: exlms-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: ExLMS
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - exlms-network
+
+  # ── Backend (Node.js / Express) ───────────────────────────────────────────────
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: exlms-backend
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - MONGODB_URI=mongodb://mongo:27017/ExLMS
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - JWT_ACCESS_SECRET=${JWT_ACCESS_SECRET}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
+    volumes:
+      - ./public/uploads:/app/public/uploads
+    networks:
+      - exlms-network
+
+  # ── Frontend (Vite React + Nginx) ────────────────────────────────────────────
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+      args:
+        VITE_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+    container_name: exlms-client
+    restart: unless-stopped
+    ports:
+      - "5173"
+    depends_on:
+      - backend
+    networks:
+      - exlms-network
+
+networks:
+  exlms-network:
+    driver: bridge
+
+volumes:
+  mongo-data:
+

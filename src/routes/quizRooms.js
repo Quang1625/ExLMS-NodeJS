@@ -61,7 +61,7 @@ router.post('/', async (req, res, next) => {
 router.get('/:code', async (req, res, next) => {
     try {
         const room = await QuizRoom.findOne({ room_code: req.params.code.toUpperCase() })
-            .populate('quiz_id', 'title questions.content questions.points questions.question_type questions.answers questions.video_url questions.media_type questions.media_url')
+            .populate('quiz_id', 'title questions._id questions.content questions.points questions.question_type questions.answers._id questions.answers.content questions.video_url questions.media_type questions.media_url')
             .populate('host_id', 'full_name')
             .lean();
 

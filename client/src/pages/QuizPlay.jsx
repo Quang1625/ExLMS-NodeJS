@@ -49,9 +49,15 @@ export default function QuizPlay() {
       navigate(`/quiz/result/${code}`, { state: { players: finalPlayers } })
     })
 
+    socket.on('quiz:answer_result', ({ isCorrect }) => {
+      console.log(`- Quiz Feedback: Result is ${isCorrect ? 'CORRECT' : 'INCORRECT'}`);
+      setFeedback(isCorrect ? 'CHÍNH XÁC! ✨' : 'RẤT TIẾC! ❌')
+    })
+
     return () => {
       socket.off('quiz:next_question')
       socket.off('quiz:finished')
+      socket.off('quiz:answer_result')
     }
   }, [code, socket, user, navigate])
 
@@ -72,9 +78,11 @@ export default function QuizPlay() {
     if (answered || !currentQuestion) return
     setAnswered(true)
 
-    // Feedback is now more generic until server provides it (or we can assume submission success)
-    setFeedback('Đã nhận câu trả lời! ⚡')
+    // Initial neutral feedback while waiting for server validation
+    setFeedback('Đang kiểm tra... ⚡')
 
+    console.log(`- Submitting Answer: Question ${currentQuestion._id}, Answer ${answer._id}`);
+    
     if (socket) {
       socket.emit('quiz:submit_answer', {
         roomCode: code,
@@ -131,10 +139,17 @@ export default function QuizPlay() {
         </div>
 
         {feedback && (
-          <div className={`feedback-overlay ${feedback.includes('Chính xác') ? 'correct' : 'incorrect'}`}>
-            <div style={{ fontSize: '8rem' }}>{feedback.includes('Chính xác') ? '✅' : '❌'}</div>
+          <div className={`feedback-overlay ${
+            feedback.includes('CHÍNH XÁC') ? 'correct' : 
+            feedback.includes('RẤT TIẾC') ? 'incorrect' : 'submitted'
+          }`}>
+            <div style={{ fontSize: '8rem', marginBottom: '1rem' }}>
+              {feedback.includes('CHÍNH XÁC') ? '✅' : feedback.includes('RẤT TIẾC') ? '❌' : '⚡'}
+            </div>
             <h2>{feedback}</h2>
-            <p style={{ fontSize: '1.5rem', opacity: 0.8 }}>Chờ câu hỏi tiếp theo...</p>
+            <p style={{ fontSize: '1.5rem', opacity: 0.8, letterSpacing: '0.05em' }}>
+              {feedback.includes('Đang kiểm tra') ? 'Vui lòng chờ giây lát...' : 'Chờ câu hỏi tiếp theo...'}
+            </p>
           </div>
         )}
       </div>

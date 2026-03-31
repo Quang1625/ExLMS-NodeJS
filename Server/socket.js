@@ -88,10 +88,21 @@ module.exports = {
 
                     const quiz = room.quiz_id;
                     const question = quiz.questions.id(questionId);
-                    if (!question) return;
+                    if (!question) {
+                        console.log(`Quiz Error: Question ${questionId} not found in Room ${roomCode}`);
+                        return;
+                    }
 
-                    const correctAnswer = question.answers.find(a => a.is_correct);
-                    const isCorrect = correctAnswer && correctAnswer._id.toString() === answerId;
+                    // Robust matching for any correct answer
+                    const isCorrect = question.answers.some(a => a.is_correct && a._id.toString() === answerId);
+                    
+                    console.log(`- Quiz Play Status [Room ${roomCode}]:`);
+                    console.log(`  User: ${player.name} (${userId})`);
+                    console.log(`  Question Content: ${question.content.substring(0, 30)}...`);
+                    console.log(`  Received Answer ID: ${answerId}`);
+                    console.log(`  Correct Answers IDs: ${question.answers.filter(a => a.is_correct).map(a => a._id.toString()).join(', ')}`);
+                    console.log(`  Result: ${isCorrect ? 'Correct ✅' : 'Incorrect ❌'}`);
+
                     const pointsAwarded = isCorrect ? (question.points || 1) : 0;
 
                     // Update player score and mark question as answered
@@ -103,6 +114,9 @@ module.exports = {
                             $set: { 'players.$.last_answer_at': new Date() }
                         }
                     );
+
+                    // Send immediate result to the submitting player
+                    socket.emit('quiz:answer_result', { isCorrect });
 
                     // Fetch updated leaderboard
                     const updatedRoom = await QuizRoom.findOne({ room_code: roomCode.toUpperCase() });

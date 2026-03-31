@@ -1,0 +1,13 @@
+scripts\createAdmin.js bỏ 3 dòng dầu vơi dòng 57 */ nha xong ròi chạy mấy lệnh sau nha
+
+mongodb đặt tên ExLMS nha
+
+
+E:\ExLMS-NodeJS\ExLMS-NodeJS> npm install express mongoose cors 
+E:\ExLMS-NodeJS\ExLMS-NodeJS>node scripts/createAdmin.js
+
+
+E:\ExLMS-NodeJS\ExLMS-NodeJS>npm run dev
+E:\ExLMS-NodeJS\ExLMS-NodeJS\client> npm install axios
+E:\ExLMS-NodeJS\ExLMS-NodeJS\client>npm run dev
+
