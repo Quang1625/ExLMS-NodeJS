@@ -28,3 +28,4 @@ deploy.yml
 *.sln
 *.sw?
 .env
+.github/workflows/deploy.yml
