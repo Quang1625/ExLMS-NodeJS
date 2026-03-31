@@ -130,23 +130,31 @@ router.post('/:id/attempts', async (req, res, next) => {
         const quizMaxScore = quiz.questions.reduce((acc, q) => acc + (q.points || 0), 0);
 
         // Map responses for easy lookup
-        const respMap = new Map(responses.map(r => [r.question_id, r]));
+        const respMap = new Map();
+        responses.forEach(r => {
+            if (r.question_id) respMap.set(r.question_id.toString(), r);
+        });
 
         for (const question of quiz.questions) {
-            const response = respMap.get(question._id.toString());
+            const qId = question._id.toString();
+            const response = respMap.get(qId);
             let isCorrect = false, pointsEarned = 0;
 
             if (response) {
                 if (question.question_type === 'SINGLE_CHOICE' || question.question_type === 'TRUE_FALSE') {
                     const correctAnswer = question.answers.find(a => a.is_correct);
-                    isCorrect = correctAnswer && correctAnswer._id.toString() === response.selected_answer_id;
-                    pointsEarned = isCorrect ? question.points : 0;
+                    // Use loose equality or explicit toString for robust comparison
+                    isCorrect = correctAnswer && (correctAnswer._id.toString() === String(response.selected_answer_id));
+                    pointsEarned = isCorrect ? (question.points || 0) : 0;
                 } else if (question.question_type === 'MULTIPLE_CHOICE') {
-                    const correctAnswers = question.answers.filter(a => a.is_correct).map(a => a._id.toString());
-                    const selectedAnswers = response.selected_answer_ids || [];
-                    isCorrect = correctAnswers.length > 0 && correctAnswers.every(id => selectedAnswers.includes(id))
-                        && selectedAnswers.every(id => correctAnswers.includes(id));
-                    pointsEarned = isCorrect ? question.points : 0;
+                    const correctIds = question.answers.filter(a => a.is_correct).map(a => a._id.toString()).sort();
+                    const selectedIds = (response.selected_answer_ids || (response.selected_answer_id ? [response.selected_answer_id] : []))
+                        .map(id => String(id)).sort();
+                    
+                    isCorrect = correctIds.length > 0 && 
+                               correctIds.length === selectedIds.length && 
+                               correctIds.every((id, idx) => id === selectedIds[idx]);
+                    pointsEarned = isCorrect ? (question.points || 0) : 0;
                 }
 
                 attempt.responses.push({
@@ -158,7 +166,6 @@ router.post('/:id/attempts', async (req, res, next) => {
                     points_earned: pointsEarned
                 });
             } else {
-                // Not answered
                 attempt.responses.push({
                     question_id: question._id,
                     is_correct: false,

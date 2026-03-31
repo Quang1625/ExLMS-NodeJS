@@ -75,32 +75,40 @@ module.exports = {
 
             socket.on('quiz:submit_answer', async ({ roomCode, userId, questionId, answerId }) => {
                 const QuizRoom = require('../src/models/QuizRoom');
-                const room = await QuizRoom.findOne({ room_code: roomCode.toUpperCase() }).populate('quiz_id');
-                if (room && room.status === 'IN_PROGRESS') {
+                try {
+                    const room = await QuizRoom.findOne({ room_code: roomCode.toUpperCase() }).populate('quiz_id');
+                    if (!room || room.status !== 'IN_PROGRESS') return;
+
+                    const player = room.players.find(p => p.user_id.toString() === userId);
+                    if (!player) return;
+
+                    // Prevent multiple answers for the same question
+                    const alreadyAnswered = player.answered_questions?.some(qId => qId.toString() === questionId);
+                    if (alreadyAnswered) return;
+
                     const quiz = room.quiz_id;
                     const question = quiz.questions.id(questionId);
-                    
-                    if (question) {
-                        const correctAnswer = question.answers.find(a => a.is_correct);
-                        const isCorrect = correctAnswer && correctAnswer._id.toString() === answerId;
-                        const pointsAwarded = isCorrect ? question.points : 0;
+                    if (!question) return;
 
-                        // Update player score
-                        await QuizRoom.updateOne(
-                            { room_code: roomCode.toUpperCase(), 'players.user_id': userId },
-                            {
-                                $inc: { 'players.$.score': pointsAwarded },
-                                $set: { 'players.$.last_answer_at': new Date() }
-                            }
-                        );
+                    const correctAnswer = question.answers.find(a => a.is_correct);
+                    const isCorrect = correctAnswer && correctAnswer._id.toString() === answerId;
+                    const pointsAwarded = isCorrect ? (question.points || 1) : 0;
 
-                        // Notify lobby/host about answer
-                        const updatedRoom = await QuizRoom.findOne({ room_code: roomCode.toUpperCase() });
-                        io.to(`quiz_room_${roomCode.toUpperCase()}`).emit('quiz:update_leaderboard', updatedRoom.players);
-                        
-                        // Send feedback to the specific user if needed (optional)
-                        // socket.emit('quiz:answer_result', { isCorrect, pointsAwarded });
-                    }
+                    // Update player score and mark question as answered
+                    await QuizRoom.updateOne(
+                        { room_code: roomCode.toUpperCase(), 'players.user_id': userId },
+                        {
+                            $inc: { 'players.$.score': pointsAwarded },
+                            $push: { 'players.$.answered_questions': questionId },
+                            $set: { 'players.$.last_answer_at': new Date() }
+                        }
+                    );
+
+                    // Fetch updated leaderboard
+                    const updatedRoom = await QuizRoom.findOne({ room_code: roomCode.toUpperCase() });
+                    io.to(`quiz_room_${roomCode.toUpperCase()}`).emit('quiz:update_leaderboard', updatedRoom.players);
+                } catch (err) {
+                    console.error('Socket submit_answer error:', err);
                 }
             });
 

@@ -103,7 +103,7 @@ export default function QuizSinglePlay() {
 
         <div className="quiz-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <span style={{ fontSize: '1.5rem' }}>⏱️ Thới gian:</span>
+            <span style={{ fontSize: '1.5rem' }}>⏱️ Thời gian:</span>
             <span style={{ fontSize: '2rem', fontWeight: 900, color: timer < 60 ? 'var(--danger)' : 'white' }}>
               {quiz.time_limit_sec ? `${Math.floor(timer / 60)}:${String(timer % 60).padStart(2, '0')}` : '∞'}
             </span>

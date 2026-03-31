@@ -15,6 +15,7 @@ const quizRoomSchema = new mongoose.Schema({
         name: String,
         score: { type: Number, default: 0 },
         is_connected: { type: Boolean, default: true },
+        answered_questions: [{ type: mongoose.Schema.Types.ObjectId }],
         last_answer_at: Date
     }],
     settings: {
