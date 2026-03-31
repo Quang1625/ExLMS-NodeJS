@@ -2,7 +2,7 @@
 const mongoose = require('mongoose')
 const bcrypt = require('bcryptjs')
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/ExLMS'
+const MONGODB_URI = 'mongodb://localhost:27017/ExLMS'
 
 const userSchema = new mongoose.Schema({
     email: { type: String, required: true, unique: true },
@@ -16,9 +16,9 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model('User', userSchema)
 
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@exlms.com'
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Admin@123'
-const ADMIN_NAME = process.env.ADMIN_NAME || 'Super Admin'
+const ADMIN_EMAIL =  'admin@exlms.com'
+const ADMIN_PASSWORD = 'Admin@123'
+const ADMIN_NAME = 'Super Admin'
 
     ; (async () => {
         await mongoose.connect(MONGODB_URI)
