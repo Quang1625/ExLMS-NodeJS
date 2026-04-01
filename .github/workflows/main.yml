@@ -12,6 +12,11 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
 
+      - name: Prepare for SCP (Remove root-owned files on runner)
+        run: |
+          rm -rf nginx/ssl
+          rm -rf .git
+
       - name: Copy project to server
         uses: appleboy/scp-action@v0.1.7
         with:
