@@ -526,7 +526,8 @@
       "or_divider": "Hoặc đăng nhập với",
       "logging_in": "Đang đăng nhập...",
       "login_fail": "Đăng nhập thất bại",
-      "google_fail": "Đăng nhập Google thất bại"
+      "google_fail": "Đăng nhập Google thất bại",
+      "google_ip_warning": "Đăng nhập bằng Google chỉ khả dụng khi sử dụng tên miền chính thức thay vì địa chỉ IP."
     },
     "register": {
       "title": "Tạo tài khoản",

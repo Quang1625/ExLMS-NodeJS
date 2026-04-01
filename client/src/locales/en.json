@@ -531,7 +531,8 @@
       "or_divider": "Or login with",
       "logging_in": "Logging in...",
       "login_fail": "Login failed",
-      "google_fail": "Google login failed"
+      "google_fail": "Google login failed",
+      "google_ip_warning": "Google Login is only available when using an official domain name instead of a raw IP address."
     },
     "register": {
       "title": "Create Account",
