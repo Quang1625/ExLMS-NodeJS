@@ -13,6 +13,9 @@ export default function Login() {
   const [loading, setLoading] = useState(false)
   const [focusField, setFocusField] = useState(null)
 
+  // Determine if Google One Tap is safe to use (requires HTTPS or localhost)
+  const isSafeForOneTap = window.location.hostname === 'localhost' || window.location.protocol === 'https:'
+
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
 
   const submit = async e => {
@@ -115,8 +118,8 @@ export default function Login() {
           <GoogleLogin
             onSuccess={handleGoogleSuccess}
             onError={() => setError(t('auth.login.google_fail'))}
-            useOneTap
-            auto_select
+            useOneTap={isSafeForOneTap}
+            auto_select={isSafeForOneTap}
           />
         </div>
 
