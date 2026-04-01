@@ -409,6 +409,7 @@
         "due": "Due: {{date}}",
         "max_score": "Max Score: {{score}}"
       },
+      "not_member_hint": "You need to join the group to see courses, assignments, and discussions.",
       "requests": {
         "empty": "No pending requests",
         "approve": "Approve",

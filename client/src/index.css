@@ -284,6 +284,8 @@ body.light-mode .topbar {
 }
 .card:hover { border-color: rgba(108,99,255,0.25); box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
 .card:hover::before { opacity: 1; }
+.card--no-hover:hover { border-color: var(--border) !important; box-shadow: none !important; transform: none !important; }
+.card--no-hover:hover::before { opacity: 0 !important; }
 .card--glass {
   background: var(--glass);
   backdrop-filter: blur(12px);

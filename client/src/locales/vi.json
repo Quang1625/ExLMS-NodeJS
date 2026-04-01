@@ -409,6 +409,7 @@
         "due": "Hạn nộp: {{date}}",
         "max_score": "Điểm tối đa: {{score}}"
       },
+      "not_member_hint": "Bạn cần tham gia nhóm để xem các khóa học, bài tập và thảo luận.",
       "requests": {
         "empty": "Không có yêu cầu nào",
         "approve": "Duyệt",

@@ -88,13 +88,23 @@ export default function Groups() {
   }
 
   const getJoinStatus = (g) => {
-    if (!user) return null
+    if (!user?._id) return 'NONE'
     if (canManage) return 'MEMBER'
     
-    const isMember = g.members?.some(m => m.user_id === user._id || m.user_id?._id === user._id)
+    const userId = user._id.toString()
+    
+    // Check if is active member
+    const isMember = g.members?.some(m => {
+      const mid = (typeof m.user_id === 'object' ? m.user_id._id : m.user_id)?.toString()
+      return mid === userId && m.status === 'ACTIVE'
+    })
     if (isMember) return 'MEMBER'
 
-    const hasPending = g.join_requests?.some(r => r.user_id === user._id && r.status === 'PENDING')
+    // Check if has pending request
+    const hasPending = g.join_requests?.some(r => {
+      const rid = (typeof r.user_id === 'object' ? r.user_id._id : r.user_id)?.toString()
+      return rid === userId && r.status === 'PENDING'
+    })
     if (hasPending) return 'PENDING'
 
     return 'NONE'
@@ -129,8 +139,18 @@ export default function Groups() {
       ) : (
         <div className="grid-auto">
           {groups.map((g, i) => (
-            <div className="card" key={g._id} style={{ cursor: 'pointer', position: 'relative' }}
-              onClick={() => navigate(`/groups/${g._id}`)}>
+            <div className={`card ${ (g.visibility === 'PRIVATE' && getJoinStatus(g) !== 'MEMBER') ? 'card--no-hover' : '' }`} 
+              key={g._id} 
+              style={{ 
+                cursor: (g.visibility === 'PUBLIC' || getJoinStatus(g) === 'MEMBER') ? 'pointer' : 'default', 
+                position: 'relative' 
+              }}
+              onClick={(e) => {
+                if (e.target.closest('.btn') || e.target.closest('.tag')) return; // Ignore if clicking sub-elements
+                if (g.visibility === 'PUBLIC' || getJoinStatus(g) === 'MEMBER') {
+                  navigate(`/groups/${g._id}`)
+                }
+              }}>
               {/* Color bar */}
               <div style={{
                 height: 8, margin: '-1.5rem -1.5rem 1.25rem',
@@ -163,11 +183,21 @@ export default function Groups() {
                 </div>
               </div>
 
-              <p style={{ fontSize: '0.85rem', marginBottom: '1rem', WebkitLineClamp: 2, display: '-webkit-box', WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                {g.description || t('common.no_description')}
+              <p style={{ 
+                fontSize: '0.85rem', marginBottom: '1rem', WebkitLineClamp: 2, display: '-webkit-box', WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                color: (g.visibility === 'PRIVATE' && getJoinStatus(g) !== 'MEMBER') ? 'var(--text-3)' : 'var(--text-2)',
+                fontStyle: (g.visibility === 'PRIVATE' && getJoinStatus(g) !== 'MEMBER') ? 'italic' : 'normal',
+                opacity: (g.visibility === 'PRIVATE' && getJoinStatus(g) !== 'MEMBER') ? 0.6 : 1
+              }}>
+                {(g.visibility === 'PRIVATE' && getJoinStatus(g) !== 'MEMBER') 
+                  ? `🔒 ${t('groups.detail.not_member_hint') || 'Nội dung riêng tư'}`
+                  : (g.description || t('common.no_description'))}
               </p>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--text-3)' }}>
+              <div style={{ 
+                display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--text-3)',
+                visibility: (g.visibility === 'PRIVATE' && getJoinStatus(g) !== 'MEMBER') ? 'hidden' : 'visible'
+              }}>
                 <span>👤 {t('groups.members_count', { count: g.member_count })}</span>
                 <span>👑 {g.owner_id?.full_name || 'GV'}</span>
               </div>

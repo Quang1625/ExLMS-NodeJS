@@ -21,22 +21,46 @@ export default function GroupDetail() {
   const [loading, setLoading] = useState(true)
   const [requests, setRequests] = useState([])
 
-  const fetchGroupData = () => {
+  const fetchGroupData = async () => {
     setLoading(true)
-    Promise.all([
-      api.get(`/study-groups/${id}`),
-      api.get(`/study-groups/${id}/feed`),
-      api.get(`/courses?group_id=${id}`),
-      api.get(`/assignments?group_id=${id}`),
-      canManage ? api.get(`/study-groups/${id}/join-requests`).catch(() => ({ data: { data: [] } })) : Promise.resolve({ data: { data: [] } })
-    ]).then(([g, f, c, a, r]) => {
-      setGroup(g.data.data ?? g.data)
-      setFeed(f.data.data ?? f.data)
-      setCourses(c.data.data ?? c.data)
-      setAssignments(a.data.data ?? a.data)
-      setRequests(r.data.data ?? r.data)
-    }).catch(() => navigate('/groups'))
-    .finally(() => setLoading(false))
+    try {
+      // 1. Fetch Basic Info first (available to everyone)
+      const gRes = await api.get(`/study-groups/${id}`)
+      const g = gRes.data.data ?? gRes.data
+      setGroup(g)
+
+      // 2. Check membership/permission
+      const isMember = canManage || g.members?.some(m => (m.user_id === user?._id || m.user_id?._id === user?._id) && m.status === 'ACTIVE')
+      
+      // If Private and not a member, redirect out immediately to prevent viewing metadata
+      if (g.visibility === 'PRIVATE' && !isMember) {
+        navigate('/groups')
+        return
+      }
+
+      if (isMember) {
+        // 3. Parallel fetch restricted content only if member
+        const [f, c, a, r] = await Promise.all([
+          api.get(`/study-groups/${id}/feed`).catch(() => ({ data: { data: [] } })),
+          api.get(`/courses?group_id=${id}`).catch(() => ({ data: { data: [] } })),
+          api.get(`/assignments?group_id=${id}`).catch(() => ({ data: { data: [] } })),
+          canManage ? api.get(`/study-groups/${id}/join-requests`).catch(() => ({ data: { data: [] } })) : Promise.resolve({ data: { data: [] } })
+        ])
+        setFeed(f.data.data ?? f.data)
+        setCourses(c.data.data ?? c.data)
+        setAssignments(a.data.data ?? a.data)
+        setRequests(r.data.data ?? r.data)
+      } else {
+        // Not a member - reset protected states
+        setFeed([]); setCourses([]); setAssignments([]); setRequests([])
+      }
+    } catch (err) {
+      console.error(err)
+      // Only navigate away if even basic group info is not accessible
+      navigate('/groups')
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => {
@@ -54,8 +78,31 @@ export default function GroupDetail() {
     }
   }
 
+  const handleJoin = async () => {
+    const msg = group.visibility === 'PRIVATE' ? prompt(t('groups.join_modal.message_placeholder')) : ''
+    if (group.visibility === 'PRIVATE' && msg === null) return
+
+    try {
+      await api.post(`/study-groups/${id}/join-requests`, { message: msg })
+      alert(t('groups.join_modal.success'))
+      fetchGroupData()
+    } catch (err) {
+      alert(err?.response?.data?.error || t('common.error_fail'))
+    }
+  }
+
   if (loading) return <Layout><div className="spinner-wrap"><div className="spinner" /></div></Layout>
   if (!group) return null
+
+  const userId = user?._id?.toString()
+  const isMember = canManage || group.members?.some(m => {
+    const mid = (typeof m.user_id === 'object' ? m.user_id._id : m.user_id)?.toString()
+    return mid === userId && m.status === 'ACTIVE'
+  })
+  const hasPending = group.join_requests?.some(r => {
+    const rid = (typeof r.user_id === 'object' ? r.user_id._id : r.user_id)?.toString()
+    return rid === userId && r.status === 'PENDING'
+  })
 
   const locale = i18n.language === 'en' ? 'en-US' : 'vi-VN'
 
@@ -83,24 +130,52 @@ export default function GroupDetail() {
         </div>
       </div>
 
-      {/* Tabs */}
-      <div style={{ display:'flex', gap:'0.5rem', marginBottom:'1.5rem', borderBottom:'1px solid var(--border)', paddingBottom:'0', overflowX: 'auto' }}>
+      {/* Tabs - Only show all tabs if member */}
+      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '0', overflowX: 'auto' }}>
         {[
           ['feed', `📰 ${t('groups.detail.tabs.feed')}`],
-          ['courses', `📚 ${t('groups.detail.tabs.courses')}`],
-          ['assignments', `📝 ${t('groups.detail.tabs.assignments')}`],
-          ['members', `👥 ${t('groups.detail.tabs.members')}`],
-          ['meeting', `📹 ${t('groups.detail.tabs.meeting')}`],
+          ...(isMember ? [
+            ['courses', `📚 ${t('groups.detail.tabs.courses')}`],
+            ['assignments', `📝 ${t('groups.detail.tabs.assignments')}`],
+            ['members', `👥 ${t('groups.detail.tabs.members')}`],
+            ['meeting', `📹 ${t('groups.detail.tabs.meeting')}`],
+          ] : []),
           ...(canManage ? [['requests', `⏳ ${t('groups.detail.tabs.requests')} (${requests.length})`]] : [])
         ].map(([key, label]) => (
           <button key={key}
             onClick={() => setTab(key)}
-            style={{ padding:'0.625rem 1rem', fontSize:'0.875rem', fontWeight:600, color: tab===key ? 'var(--primary-2)' : 'var(--text-3)',
-              borderBottom: tab===key ? '2px solid var(--primary)' : '2px solid transparent', background:'none', transition:'all 0.2s', whiteSpace: 'nowrap' }}>
+            style={{
+              padding: '0.625rem 1rem', fontSize: '0.875rem', fontWeight: 600, color: tab === key ? 'var(--primary-2)' : 'var(--text-3)',
+              borderBottom: tab === key ? '2px solid var(--primary)' : '2px solid transparent', background: 'none', transition: 'all 0.2s', whiteSpace: 'nowrap'
+            }}>
             {label}
           </button>
         ))}
       </div>
+
+      {/* Non-member call to action */}
+      {!isMember && !canManage && (
+        <div style={{
+          textAlign: 'center', padding: '4rem 2rem', background: 'var(--bg-2)',
+          border: '1px solid var(--border)', borderRadius: '24px', marginBottom: '2rem'
+        }}>
+          <div style={{ fontSize: '4rem', marginBottom: '1.5rem' }}>🔒</div>
+          <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.5rem' }}>{t('groups.join_modal.title') || 'Tham gia nhóm'}</h3>
+          <p style={{ color: 'var(--text-3)', marginBottom: '2rem', maxWidth: '400px', margin: '0 auto 1.5rem' }}>
+            {t('groups.detail.not_member_hint') || 'Bạn cần tham gia nhóm để xem các khóa học, bài tập và thảo luận.'}
+          </p>
+          
+          {hasPending ? (
+            <button className="btn btn-secondary btn-lg" disabled style={{ padding: '0.8rem 2.5rem', borderRadius: '16px' }}>
+              ⏳ {t('groups.pending')}
+            </button>
+          ) : (
+            <button className="btn btn-primary btn-lg" onClick={handleJoin} style={{ padding: '0.8rem 2.5rem', borderRadius: '16px' }}>
+              🚀 {t('groups.join')}
+            </button>
+          )}
+        </div>
+      )}
 
       {tab === 'feed' && (
         <div style={{ display:'flex', flexDirection:'column', gap:'1rem' }}>
