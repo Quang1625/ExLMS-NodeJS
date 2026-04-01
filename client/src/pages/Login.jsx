@@ -116,16 +116,29 @@ export default function Login() {
         <div className="auth-divider">{t('auth.login.or_divider')}</div>
 
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '1rem', minHeight: '40px' }}>
-          <GoogleLogin
-            onSuccess={handleGoogleSuccess}
-            onError={() => setError(t('auth.login.google_fail'))}
-            useOneTap={isSafeForOneTap}
-            auto_select={isSafeForOneTap}
-          />
-          {isIpAddress && (
-            <p style={{ fontSize: '0.7rem', color: 'var(--text-3)', marginTop: '0.5rem', textAlign: 'center' }}>
-              ⚠️ {t('auth.login.google_ip_warning') || 'Google Login yêu cầu tên miền chính thức'}
-            </p>
+          {!isIpAddress ? (
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => setError(t('auth.login.google_fail'))}
+              useOneTap={isSafeForOneTap}
+              auto_select={isSafeForOneTap}
+            />
+          ) : (
+            <div style={{
+              background: 'rgba(255, 193, 7, 0.1)',
+              border: '1px solid rgba(255, 193, 7, 0.2)',
+              borderRadius: '12px',
+              padding: '12px 16px',
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px'
+            }}>
+              <span style={{ fontSize: '1.2rem' }}>⚠️</span>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-2)', margin: 0 }}>
+                {t('auth.login.google_ip_warning') || 'Đăng nhập bằng Google chỉ khả dụng khi sử dụng tên miền chính thức thay vì địa chỉ IP.'}
+              </p>
+            </div>
           )}
         </div>
 
