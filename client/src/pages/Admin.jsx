@@ -66,7 +66,7 @@ export default function Admin() {
     <Layout>
       <div className="page fade-in" style={{ maxWidth: '1200px', margin: '0 auto' }}>
         <div style={{ marginBottom: '2.5rem' }}>
-          <h1 style={{ fontSize: '2.5rem', fontWeight: 900, letterSpacing: '-0.02em', background: 'linear-gradient(135deg, #fff 0%, var(--text-2) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: '0.5rem' }}>
+          <h1 style={{ fontSize: '2.5rem', fontWeight: 900, letterSpacing: '-0.02em', color: 'var(--text)', marginBottom: '0.5rem' }}>
             {t('admin.title')}
           </h1>
           <p style={{ color: 'var(--text-3)', fontSize: '1.1rem' }}>{t('admin.subtitle')}</p>
@@ -82,7 +82,7 @@ export default function Admin() {
             <div key={i} className="stat-card glass-card-hover" style={{ border: `1px solid ${s.bg.replace('0.1', '0.2')}` }}>
               <div className="stat-card__icon" style={{ background: s.bg, color: s.color, fontSize: '1.8rem' }}>{s.icon}</div>
               <div>
-                <div className="stat-card__value" style={{ fontSize: '2rem', color: '#fff' }}>{s.value}</div>
+                <div className="stat-card__value" style={{ fontSize: '2rem', color: 'var(--text)' }}>{s.value}</div>
                 <div className="stat-card__label" style={{ fontWeight: 600, opacity: 0.6 }}>{s.label}</div>
               </div>
             </div>
@@ -143,7 +143,7 @@ export default function Admin() {
                           {u.full_name?.[0]}
                         </div>
                         <div>
-                          <div style={{ fontWeight: 700, color: '#fff', fontSize: '1rem' }}>{u.full_name}</div>
+                          <div style={{ fontWeight: 700, color: 'var(--text)', fontSize: '1rem' }}>{u.full_name}</div>
                           <div style={{ fontSize: '0.8rem', color: 'var(--text-3)' }}>{u.email}</div>
                         </div>
                       </div>
@@ -155,7 +155,7 @@ export default function Admin() {
                         onChange={e => handleUpdateRole(u._id, e.target.value)}
                         style={{
                           background: 'rgba(255,255,255,0.05)',
-                          color: '#fff',
+                          color: 'var(--text)',
                           border: '1px solid var(--border)',
                           padding: '6px 12px',
                           borderRadius: '8px',

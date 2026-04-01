@@ -57,7 +57,7 @@ export default function Forum() {
         marginBottom: '2rem'
       }}>
         <div>
-          <h1 style={{ fontSize: '2.25rem', marginBottom: '0.5rem', background: 'linear-gradient(135deg, #fff, var(--text-2))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{t('forum.title')} 💬</h1>
+          <h1 style={{ fontSize: '2.25rem', marginBottom: '0.5rem', color: 'var(--text)' }}>{t('forum.title')} 💬</h1>
           <p style={{ fontSize: '1rem', color: 'var(--text-3)' }}>{t('forum.subtitle', { count: posts.length })}</p>
         </div>
         <button className="btn btn-primary" style={{ padding: '0.75rem 1.5rem', borderRadius: '14px' }} onClick={() => navigate('/forum/new')}>
@@ -87,7 +87,7 @@ export default function Forum() {
                   cursor: 'pointer',
                   padding: '6px 16px',
                   borderRadius: '100px',
-                  backgroundColor: !activeTag ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
+                  backgroundColor: !activeTag ? 'var(--primary)' : 'var(--glass)',
                   color: !activeTag ? '#fff' : 'var(--text-2)',
                   border: 'none',
                   transition: 'all 0.2s ease'

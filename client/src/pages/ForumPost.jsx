@@ -167,7 +167,7 @@ export default function ForumPost() {
               ))}
             </div>
 
-            <h1 style={{ fontSize: '2.5rem', fontWeight: 800, marginBottom: '1.5rem', lineHeight: 1.2, color: '#fff' }}>{post.title}</h1>
+            <h1 style={{ fontSize: '2.5rem', fontWeight: 800, marginBottom: '1.5rem', lineHeight: 1.2, color: 'var(--text)' }}>{post.title}</h1>
 
             <div style={{
               display: 'flex',

@@ -69,7 +69,7 @@ export default function ForumNew() {
         marginBottom: '2.5rem'
       }}>
         <div>
-          <h1 style={{ fontSize: '2.25rem', marginBottom: '0.5rem', background: 'linear-gradient(135deg, #fff, var(--text-2))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>✍️ {t('forum.form.title')}</h1>
+          <h1 style={{ fontSize: '2.25rem', marginBottom: '0.5rem', color: 'var(--text)' }}>✍️ {t('forum.form.title')}</h1>
           <p style={{ fontSize: '1rem', color: 'var(--text-3)' }}>{t('forum.form.subtitle')}</p>
         </div>
         <button className="btn btn-secondary" style={{ borderRadius: '12px', padding: '10px 20px' }} onClick={() => navigate('/forum')}>

@@ -124,7 +124,7 @@ export default function Assignments() {
                   {overdue && <span className="status-badge status-badge--danger">⚠️ {t('assignments.overdue')}</span>}
                 </div>
 
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem', color: '#fff' }}>{a.title}</h3>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem', color: 'var(--text)' }}>{a.title}</h3>
                 <p style={{ fontSize: '0.875rem', color: 'var(--text-3)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   👥 {a.group_id?.name || '—'}
                 </p>

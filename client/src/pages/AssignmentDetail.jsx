@@ -131,7 +131,7 @@ export default function AssignmentDetail() {
   const renderStudentView = () => (
     <div className="grid-2 fade-in" style={{ alignItems: 'start', gap: '2rem' }}>
       <div className="glass-card-hover" style={{ padding: '2.5rem' }}>
-        <h3 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '1.5rem', color: '#fff' }}>{t('assignment_detail.assignment_content')}</h3>
+        <h3 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '1.5rem', color: 'var(--text)' }}>{t('assignment_detail.assignment_content')}</h3>
         <div style={{ whiteSpace: 'pre-wrap', lineHeight: 1.6, color: 'var(--text-2)', fontSize: '1rem' }}>
           {assignment.description || t('assignment_detail.no_description')}
         </div>
@@ -153,7 +153,7 @@ export default function AssignmentDetail() {
       </div>
 
       <div className="glass-card-hover" style={{ padding: '2.5rem' }}>
-        <h3 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '1.5rem', color: '#fff' }}>{t('assignment_detail.submission_status')}</h3>
+        <h3 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '1.5rem', color: 'var(--text)' }}>{t('assignment_detail.submission_status')}</h3>
         
         <div style={{ background: 'var(--bg-3)', padding: '1.5rem', borderRadius: '20px', marginBottom: '2rem', border: '1px solid var(--border)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', alignItems: 'center' }}>
@@ -255,7 +255,7 @@ export default function AssignmentDetail() {
       {activeTab === 'content' && (
         <form className="glass-card-hover" onSubmit={handleEditAssignment} style={{ padding: '3rem' }}>
           <div style={{ marginBottom: '2.5rem' }}>
-            <h2 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '0.5rem', color: '#fff' }}>⚙️ {t('assignment_detail.admin.settings_title')}</h2>
+            <h2 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '0.5rem', color: 'var(--text)' }}>⚙️ {t('assignment_detail.admin.settings_title')}</h2>
             <p style={{ color: 'var(--text-3)' }}>{t('assignment_detail.admin.settings_subtitle')}</p>
           </div>
 
@@ -324,7 +324,7 @@ export default function AssignmentDetail() {
         <div className="glass-card-hover" style={{ padding: '2.5rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem', flexWrap: 'wrap', gap: '1rem' }}>
             <div>
-              <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#fff' }}>🗳️ {t('assignment_detail.admin.submissions_title')}</h2>
+              <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text)' }}>🗳️ {t('assignment_detail.admin.submissions_title')}</h2>
               <p style={{ color: 'var(--text-3)' }}>{t('assignment_detail.admin.submissions_subtitle')}</p>
             </div>
             <div style={{ display: 'flex', gap: '0.75rem' }}>
@@ -354,7 +354,7 @@ export default function AssignmentDetail() {
                           {d.student.full_name?.split(' ').pop()[0]}
                         </div>
                         <div>
-                          <div style={{ fontWeight: 700, color: '#fff' }}>{d.student.full_name}</div>
+                          <div style={{ fontWeight: 700, color: 'var(--text)' }}>{d.student.full_name}</div>
                           <div style={{ fontSize: '0.75rem', color: 'var(--text-3)' }}>{d.student.email}</div>
                         </div>
                       </div>
@@ -418,7 +418,7 @@ export default function AssignmentDetail() {
         <div className="modal-overlay" onClick={() => setGradeModal(null)}>
           <div className="modal-content fade-in" onClick={e => e.stopPropagation()} style={{ maxWidth: '450px' }}>
             <button className="modal-close" onClick={() => setGradeModal(null)}>×</button>
-            <h2 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: '1.5rem', color: '#fff' }}>{t('assignment_detail.admin.grade_modal.title')}</h2>
+            <h2 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: '1.5rem', color: 'var(--text)' }}>{t('assignment_detail.admin.grade_modal.title')}</h2>
             
             <form onSubmit={handleGrade} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               <div className="form-group">
@@ -461,7 +461,7 @@ export default function AssignmentDetail() {
         <div className="page-header" style={{ marginBottom: '2.5rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1.5rem' }}>
             <div>
-              <h1 style={{ fontSize: '2.5rem', fontWeight: 800, letterSpacing: '-0.03em', background: 'linear-gradient(135deg, #fff 0%, var(--text-2) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              <h1 style={{ fontSize: '2.5rem', fontWeight: 800, letterSpacing: '-0.03em', color: 'var(--text)' }}>
                 {assignment.title}
               </h1>
               <div style={{ display:'flex', gap:'0.75rem', marginTop:'1rem', flexWrap:'wrap' }}>
