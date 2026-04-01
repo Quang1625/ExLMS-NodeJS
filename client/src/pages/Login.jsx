@@ -13,8 +13,9 @@ export default function Login() {
   const [loading, setLoading] = useState(false)
   const [focusField, setFocusField] = useState(null)
 
-  // Determine if Google One Tap is safe to use (requires HTTPS or localhost)
-  const isSafeForOneTap = window.location.hostname === 'localhost' || window.location.protocol === 'https:'
+  // Determine if Google Login is safe to use (requires HTTPS + Domain, not raw IP)
+  const isIpAddress = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(window.location.hostname)
+  const isSafeForOneTap = !isIpAddress && window.location.protocol === 'https:'
 
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
 
@@ -114,13 +115,18 @@ export default function Login() {
 
         <div className="auth-divider">{t('auth.login.or_divider')}</div>
 
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem', minHeight: '40px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '1rem', minHeight: '40px' }}>
           <GoogleLogin
             onSuccess={handleGoogleSuccess}
             onError={() => setError(t('auth.login.google_fail'))}
             useOneTap={isSafeForOneTap}
             auto_select={isSafeForOneTap}
           />
+          {isIpAddress && (
+            <p style={{ fontSize: '0.7rem', color: 'var(--text-3)', marginTop: '0.5rem', textAlign: 'center' }}>
+              ⚠️ {t('auth.login.google_ip_warning') || 'Google Login yêu cầu tên miền chính thức'}
+            </p>
+          )}
         </div>
 
         <button className="oauth-btn" disabled title={t('auth.login.coming_soon')} style={{ borderRadius: '12px' }}>
