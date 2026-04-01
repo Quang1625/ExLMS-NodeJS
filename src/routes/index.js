@@ -28,5 +28,6 @@ router.use('/calendar-events', require('./calendar'));
 router.use('/forum',           require('./forum'));
 router.use('/feed-posts',      require('./forum'));         // feed post comments & reactions
 router.use('/groups',          require('./studyGroups'));   // group feed: /groups/:groupId/feed
+router.use('/admin',           require('./admin'));         // admin management
 
 module.exports = router;
