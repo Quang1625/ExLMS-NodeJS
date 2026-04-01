@@ -28,12 +28,15 @@ import Exams         from './pages/Exams'
 import QuizSinglePlay from './pages/QuizSinglePlay'
 
 
+import { ThemeProvider } from './context/ThemeContext'
+
 export default function App() {
   return (
-    <AuthProvider>
-      <SocketProvider>
-        <BrowserRouter>
-          <Routes>
+    <ThemeProvider>
+      <AuthProvider>
+        <SocketProvider>
+          <BrowserRouter>
+            <Routes>
             {/* Public */}
             <Route path="/login"    element={<Login />} />
             <Route path="/register" element={<Register />} />
@@ -71,5 +74,6 @@ export default function App() {
         </BrowserRouter>
       </SocketProvider>
     </AuthProvider>
+  </ThemeProvider>
   )
 }

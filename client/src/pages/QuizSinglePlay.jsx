@@ -1,11 +1,13 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
 import api from '../api/axios'
 import QuizNavbar from '../components/QuizNavbar'
 import MediaRenderer from '../components/MediaRenderer'
 
 export default function QuizSinglePlay() {
+  const { t } = useTranslation()
   const { id } = useParams()
   const navigate = useNavigate()
   const { user } = useAuth()
@@ -21,10 +23,9 @@ export default function QuizSinglePlay() {
   useEffect(() => {
     const fetchQuiz = async () => {
       try {
-        // Check if allowed first
         const { data: check } = await api.get(`/quizzes/${id}/check-attempt`);
         if (!check.can_attempt) {
-          alert(`Bạn đã hết lượt làm bài cho kỳ thi này! Điểm cao nhất: ${check.best_score}%`);
+          alert(t('quiz.limit_reached', { score: check.best_score }));
           navigate('/quiz/dashboard');
           return;
         }
@@ -32,7 +33,7 @@ export default function QuizSinglePlay() {
         const { data } = await api.get(`/quizzes/${id}`)
         setQuiz(data)
         if (data.time_limit_sec) setTimer(data.time_limit_sec)
-        else setTimer(-1) // No limit
+        else setTimer(-1)
       } catch (err) {
         console.error(err)
         navigate('/quiz/dashboard')
@@ -41,7 +42,25 @@ export default function QuizSinglePlay() {
       }
     }
     fetchQuiz()
-  }, [id, navigate])
+  }, [id, navigate, t])
+
+  const handleSubmit = useCallback(async () => {
+    if (submitting) return
+    setSubmitting(true)
+    try {
+      const { data } = await api.post(`/quizzes/${id}/attempts`, {
+        responses
+      })
+      setFinished(true)
+      alert(t('quiz.finish_msg', { score: data.result.score }))
+      navigate('/quiz/dashboard')
+    } catch (err) {
+      const errorMsg = err.response?.data?.error || err.response?.data || err.message
+      alert(typeof errorMsg === 'string' ? errorMsg : t('quiz.submit_error'))
+    } finally {
+      setSubmitting(false)
+    }
+  }, [id, responses, submitting, navigate, t])
 
   useEffect(() => {
     if (loading || finished) return
@@ -52,7 +71,7 @@ export default function QuizSinglePlay() {
     } else if (quiz?.time_limit_sec && timer === 0) {
       handleSubmit()
     }
-  }, [timer, finished, quiz, loading])
+  }, [timer, finished, quiz, loading, handleSubmit])
 
   const handleSelectAnswer = (answerId) => {
     const question = quiz.questions[currentIndex]
@@ -70,26 +89,11 @@ export default function QuizSinglePlay() {
     setResponses(newResponses)
   }
 
-  const handleSubmit = async () => {
-    if (submitting) return
-    setSubmitting(true)
-    try {
-      const { data } = await api.post(`/quizzes/${id}/attempts`, {
-        responses
-      })
-      setFinished(true)
-      alert(`Bạn đã hoàn thành bài thi! Điểm số: ${data.result.score}%`)
-      navigate('/quiz/dashboard')
-    } catch (err) {
-      const errorMsg = err.response?.data?.error || err.response?.data || err.message
-      console.error('Submit Error Details:', JSON.stringify(err.response?.data || {}, null, 2))
-      alert(errorMsg || 'Lỗi khi nộp bài. Vui lòng thử lại.')
-    } finally {
-      setSubmitting(false)
-    }
-  }
-
-  if (loading) return <div className="quiz-page-bg center-content"><h1>Đang tải bài thi...</h1></div>
+  if (loading) return (
+    <div className="quiz-page-bg center-content" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <h1>{t('quiz.loading_quiz')}</h1>
+    </div>
+  )
   if (!quiz) return null
 
   const currentQuestion = quiz.questions[currentIndex]
@@ -103,13 +107,13 @@ export default function QuizSinglePlay() {
 
         <div className="quiz-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <span style={{ fontSize: '1.5rem' }}>⏱️ Thời gian:</span>
-            <span style={{ fontSize: '2rem', fontWeight: 900, color: timer < 60 ? 'var(--danger)' : 'white' }}>
+            <span style={{ fontSize: '1.5rem' }}>⏱️ {t('quiz.time_label')}</span>
+            <span style={{ fontSize: '2rem', fontWeight: 900, color: timer < 60 && quiz.time_limit_sec ? 'var(--danger)' : 'white' }}>
               {quiz.time_limit_sec ? `${Math.floor(timer / 60)}:${String(timer % 60).padStart(2, '0')}` : '∞'}
             </span>
           </div>
           <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: '0.8rem', opacity: 0.7 }}>Câu hỏi</div>
+            <div style={{ fontSize: '0.8rem', opacity: 0.7 }}>{t('quiz.question_label')}</div>
             <div style={{ fontSize: '1.5rem', fontWeight: 800 }}>{currentIndex + 1} / {quiz.questions.length}</div>
           </div>
         </div>
@@ -145,16 +149,16 @@ export default function QuizSinglePlay() {
             disabled={currentIndex === 0}
             onClick={() => setCurrentIndex(i => i - 1)}
           >
-            ⬅️ Câu trước
+            {t('quiz.prev_btn')}
           </button>
           
           {currentIndex === quiz.questions.length - 1 ? (
             <button className="btn btn-primary" onClick={handleSubmit} disabled={submitting}>
-              {submitting ? 'Đang nộp...' : '🏁 Nộp bài thi'}
+              {submitting ? t('quiz.submitting') : t('quiz.submit_btn')}
             </button>
           ) : (
             <button className="btn btn-primary" onClick={() => setCurrentIndex(i => i + 1)}>
-              Câu sau ➡️
+              {t('quiz.next_btn')}
             </button>
           )}
         </div>

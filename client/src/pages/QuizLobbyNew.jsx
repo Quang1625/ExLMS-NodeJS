@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 import api from '../api/axios';
 import QuizNavbar from '../components/QuizNavbar';
 
 export default function QuizLobby() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { socket } = useSocket();
   const navigate = useNavigate();
@@ -34,7 +35,7 @@ export default function QuizLobby() {
         setJoined(true);
       }
     } catch (err) {
-      setError('Mã phòng không hợp lệ hoặc phòng đã đóng.');
+      setError(t('quiz.invalid_code'));
     } finally {
       setLoading(false);
     }
@@ -42,18 +43,12 @@ export default function QuizLobby() {
 
   useEffect(() => {
     if (!socket) return;
-
-    const handlePlayerJoined = (updatedPlayers) => {
-      setPlayers(updatedPlayers);
-    };
-
+    const handlePlayerJoined = (updatedPlayers) => setPlayers(updatedPlayers);
     const handleQuizStarted = ({ questionIndex, timeLimit }) => {
       navigate(`/quiz/play/${roomCode}`, { state: { questionIndex, timeLimit } });
     };
-
     socket.on('quiz:player_joined', handlePlayerJoined);
     socket.on('quiz:started', handleQuizStarted);
-
     return () => {
       socket.off('quiz:player_joined', handlePlayerJoined);
       socket.off('quiz:started', handleQuizStarted);
@@ -64,30 +59,54 @@ export default function QuizLobby() {
     return (
       <div className="quiz-page-bg" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <QuizNavbar />
-        <div className="quiz-container glass-card">
-          <h1 style={{ fontSize: '3.5rem', fontWeight: 900, marginBottom: '0.5rem', background: 'linear-gradient(to right, #fff, #888)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-            THAM GIA QUYẾT ĐẤU
+        <div className="quiz-container glass-card" style={{ position: 'relative', overflow: 'hidden' }}>
+          {/* Decorative orbs */}
+          <div style={{
+            position: 'absolute', top: '-60px', right: '-60px',
+            width: '180px', height: '180px', borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(108,99,255,0.15), transparent)',
+            pointerEvents: 'none'
+          }} />
+          <div style={{
+            position: 'absolute', bottom: '-40px', left: '-40px',
+            width: '140px', height: '140px', borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(0,212,255,0.1), transparent)',
+            pointerEvents: 'none'
+          }} />
+
+          <div style={{ fontSize: '3.5rem', marginBottom: '0.5rem' }}>⚡</div>
+          <h1 className="gradient-text" style={{ fontSize: '2.5rem', fontWeight: 900, marginBottom: '0.5rem' }}>
+            {t('quiz.join_title')}
           </h1>
-          <p style={{ color: 'rgba(255,255,255,0.6)', marginBottom: '2rem', fontSize: '1.2rem' }}>Nhập mã phòng từ giảng viên để bắt đầu</p>
+          <p style={{ color: 'var(--text-2)', marginBottom: '2rem', fontSize: '1.05rem' }}>
+            {t('quiz.join_subtitle')}
+          </p>
 
           <input
             type="text"
-            placeholder="MÃ PHÒNG"
+            placeholder={t('quiz.room_code_placeholder')}
             className="room-input"
             value={roomCode}
             onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
             maxLength={6}
           />
 
-          {error && <p style={{ color: '#ff4b2b', marginBottom: '1.5rem', fontWeight: 600 }}>{error}</p>}
+          {error && (
+            <p style={{ color: 'var(--danger)', marginBottom: '1.5rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}>
+              ⚠️ {error}
+            </p>
+          )}
 
           <button
-            className="btn btn-primary"
-            style={{ width: '100%', padding: '1.25rem', fontSize: '1.5rem', borderRadius: '20px', backgroundColor: '#6c63ff', border: 'none', boxShadow: '0 10px 20px rgba(108,99,255,0.3)', cursor: 'pointer' }}
+            className="btn btn-primary btn-lg"
+            style={{
+              width: '100%', padding: '1.1rem', fontSize: '1.3rem',
+              borderRadius: '16px', justifyContent: 'center'
+            }}
             onClick={joinRoom}
             disabled={loading}
           >
-            {loading ? 'Đang vào...' : 'VÀO PHÒNG NGAY 🚀'}
+            {loading ? t('quiz.joining') : t('quiz.join_btn')}
           </button>
         </div>
       </div>
@@ -97,25 +116,64 @@ export default function QuizLobby() {
   return (
     <div className="quiz-page-bg" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <QuizNavbar />
-      <div className="quiz-container glass-card">
-        <h1 style={{ fontSize: '3rem', fontWeight: 900, marginBottom: '2rem', color: 'white' }}>
-          PHÒNG CHỜ: <span style={{ color: 'var(--primary)', textShadow: '0 0 20px rgba(108,99,255,0.5)' }}>{roomCode}</span>
+      <div className="quiz-container glass-card" style={{ position: 'relative', overflow: 'hidden' }}>
+        {/* Decorative */}
+        <div style={{
+          position: 'absolute', top: '-50px', right: '-50px',
+          width: '150px', height: '150px', borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(108,99,255,0.12), transparent)',
+          pointerEvents: 'none'
+        }} />
+
+        <h1 style={{ fontSize: '2.2rem', fontWeight: 900, marginBottom: '0.5rem' }}>
+          {t('quiz.lobby_label')}
         </h1>
-        <div className="players-list" style={{ textAlign: 'left', background: 'rgba(0,0,0,0.2)', padding: '2rem', borderRadius: '24px', marginBottom: '2rem' }}>
-          <h3 style={{ color: 'rgba(255,255,255,0.8)', marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between' }}>
-            <span>Người chơi đã tham gia</span>
-            <span>{players.length} 👤</span>
+        <div style={{
+          display: 'inline-block', padding: '0.5rem 1.5rem',
+          background: 'rgba(108,99,255,0.12)', borderRadius: '12px',
+          fontSize: '1.5rem', fontWeight: 900, color: 'var(--primary-2)',
+          letterSpacing: '0.15em', marginBottom: '2rem',
+          border: '1px solid rgba(108,99,255,0.2)'
+        }}>
+          {roomCode}
+        </div>
+
+        <div style={{
+          textAlign: 'left',
+          background: 'var(--glass)',
+          border: '1px solid var(--border)',
+          padding: '1.5rem',
+          borderRadius: '20px',
+          marginBottom: '1.5rem'
+        }}>
+          <h3 style={{ color: 'var(--text-2)', marginBottom: '1.25rem', display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', fontWeight: 700 }}>
+            <span>{t('quiz.players_joined')}</span>
+            <span style={{ color: 'var(--primary-2)' }}>{players.length} 👤</span>
           </h3>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '1rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '0.75rem' }}>
             {players.map((p, i) => (
-              <div key={i} style={{ background: 'rgba(255,255,255,0.1)', padding: '0.75rem 1rem', borderRadius: '100px', textAlign: 'center', fontWeight: 600 }}>
-                {p.name} {p.user_id === user?._id && '(Bạn)'}
+              <div key={i} style={{
+                background: p.user_id === user?._id ? 'rgba(108,99,255,0.12)' : 'var(--bg-3)',
+                border: p.user_id === user?._id ? '1px solid rgba(108,99,255,0.3)' : '1px solid var(--border)',
+                padding: '0.65rem 1rem',
+                borderRadius: '12px',
+                textAlign: 'center',
+                fontWeight: 600,
+                fontSize: '0.85rem',
+                transition: 'all 0.2s ease'
+              }}>
+                {p.name} {p.user_id === user?._id && <span style={{ color: 'var(--primary-2)', fontSize: '0.75rem' }}>{t('quiz.you')}</span>}
               </div>
             ))}
           </div>
         </div>
-        <div className="pulse" style={{ fontSize: '1.2rem', color: 'var(--primary)', fontWeight: 700 }}>
-          🔥 Đang chờ giảng viên bắt đầu trận đấu...
+
+        <div style={{
+          fontSize: '1rem', color: 'var(--primary-2)', fontWeight: 700,
+          animation: 'pulse 2s ease infinite',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem'
+        }}>
+          {t('quiz.waiting_for_host')}
         </div>
       </div>
     </div>

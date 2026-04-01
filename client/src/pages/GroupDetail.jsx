@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import Layout from '../components/Layout'
 import api from '../api/axios'
 
@@ -7,6 +8,7 @@ import { useAuth } from '../context/AuthContext'
 import GroupMeeting from '../components/GroupMeeting'
 
 export default function GroupDetail() {
+  const { t, i18n } = useTranslation()
   const { user } = useAuth()
   const canManage = user?.role === 'ADMIN' || user?.role === 'INSTRUCTOR'
   const { id } = useParams()
@@ -42,22 +44,25 @@ export default function GroupDetail() {
   }, [id, canManage])
 
   const handleRequest = async (reqId, status) => {
-    if (!window.confirm(`Bạn có chắc muốn ${status === 'APPROVED' ? 'duyệt' : 'từ chối'} yêu cầu này?`)) return
+    const confirmMsg = status === 'APPROVED' ? t('groups.detail.requests.confirm_approve') : t('groups.detail.requests.confirm_reject')
+    if (!window.confirm(confirmMsg)) return
     try {
       await api.put(`/study-groups/${id}/join-requests/${reqId}`, { status })
       fetchGroupData()
     } catch (err) {
-      alert(err?.response?.data?.error || 'Lỗi khi xử lý yêu cầu')
+      alert(err?.response?.data?.error || t('common.error_fail'))
     }
   }
 
   if (loading) return <Layout><div className="spinner-wrap"><div className="spinner" /></div></Layout>
   if (!group) return null
 
+  const locale = i18n.language === 'en' ? 'en-US' : 'vi-VN'
+
   return (
     <Layout>
       <button className="btn btn-secondary btn-sm" style={{ marginBottom:'1.5rem' }} onClick={() => navigate('/groups')}>
-        ← Quay lại
+        ← {t('groups.detail.back')}
       </button>
 
       {/* Group header */}
@@ -70,9 +75,9 @@ export default function GroupDetail() {
             <h2>{group.name}</h2>
             <p style={{ fontSize:'0.875rem', marginTop:'0.25rem' }}>{group.description}</p>
             <div style={{ display:'flex', gap:'0.75rem', marginTop:'0.75rem', flexWrap:'wrap' }}>
-              <span className="tag">{group.member_count} thành viên</span>
-              <span className="tag tag--primary">{group.visibility === 'PUBLIC' ? '🌐 Công khai' : '🔒 Riêng tư'}</span>
-              <span className="tag tag--success">{group.status}</span>
+              <span className="tag">{t('groups.members_count', { count: group.member_count })}</span>
+              <span className="tag tag--primary">{group.visibility === 'PUBLIC' ? `🌐 ${t('groups.visibility.PUBLIC')}` : `🔒 ${t('groups.visibility.PRIVATE')}`}</span>
+              <span className="tag tag--success">{t(`status.${group.status}`) || group.status}</span>
             </div>
           </div>
         </div>
@@ -81,12 +86,12 @@ export default function GroupDetail() {
       {/* Tabs */}
       <div style={{ display:'flex', gap:'0.5rem', marginBottom:'1.5rem', borderBottom:'1px solid var(--border)', paddingBottom:'0', overflowX: 'auto' }}>
         {[
-          ['feed','📰 Bảng tin'],
-          ['courses', '📚 Khóa học'],
-          ['assignments', '📝 Bài tập'],
-          ['members','👥 Thành viên'],
-          ['meeting', '📹 Phòng họp'],
-          ...(canManage ? [['requests', `⏳ Yêu cầu (${requests.length})`]] : [])
+          ['feed', `📰 ${t('groups.detail.tabs.feed')}`],
+          ['courses', `📚 ${t('groups.detail.tabs.courses')}`],
+          ['assignments', `📝 ${t('groups.detail.tabs.assignments')}`],
+          ['members', `👥 ${t('groups.detail.tabs.members')}`],
+          ['meeting', `📹 ${t('groups.detail.tabs.meeting')}`],
+          ...(canManage ? [['requests', `⏳ ${t('groups.detail.tabs.requests')} (${requests.length})`]] : [])
         ].map(([key, label]) => (
           <button key={key}
             onClick={() => setTab(key)}
@@ -100,7 +105,7 @@ export default function GroupDetail() {
       {tab === 'feed' && (
         <div style={{ display:'flex', flexDirection:'column', gap:'1rem' }}>
           {feed.length === 0 ? (
-            <div className="empty-state"><div className="empty-state__icon">📭</div><h3>Chưa có bài đăng nào</h3></div>
+            <div className="empty-state"><div className="empty-state__icon">📭</div><h3>{t('groups.detail.feed.empty')}</h3></div>
           ) : feed.map(post => (
             <div className="post-card" key={post._id}>
               <div style={{ display:'flex', alignItems:'center', gap:'0.75rem', marginBottom:'0.75rem' }}>
@@ -109,9 +114,9 @@ export default function GroupDetail() {
                 </div>
                 <div>
                   <div style={{ fontSize:'0.875rem', fontWeight:600 }}>{post.author_id?.full_name}</div>
-                  <div style={{ fontSize:'0.75rem', color:'var(--text-3)' }}>{new Date(post.created_at).toLocaleDateString('vi-VN')}</div>
+                  <div style={{ fontSize:'0.75rem', color:'var(--text-3)' }}>{new Date(post.created_at).toLocaleDateString(locale)}</div>
                 </div>
-                {post.is_pinned && <span className="tag tag--primary" style={{ marginLeft:'auto' }}>📌 Ghim</span>}
+                {post.is_pinned && <span className="tag tag--primary" style={{ marginLeft:'auto' }}>📌 {t('groups.detail.feed.pinned')}</span>}
               </div>
               <p style={{ fontSize:'0.9rem', color:'var(--text)', whiteSpace:'pre-wrap' }}>{post.content}</p>
               <div style={{ display:'flex', gap:'1rem', marginTop:'0.75rem', paddingTop:'0.75rem', borderTop:'1px solid var(--border)' }}>
@@ -126,20 +131,20 @@ export default function GroupDetail() {
       {tab === 'courses' && (
         <div className="grid-auto">
           {courses.length === 0 ? (
-             <div className="empty-state" style={{ gridColumn: '1 / -1' }}><div className="empty-state__icon">📚</div><h3>Chưa có khóa học nào</h3></div>
+             <div className="empty-state" style={{ gridColumn: '1 / -1' }}><div className="empty-state__icon">📚</div><h3>{t('groups.detail.courses.empty')}</h3></div>
           ) : courses.map(course => (
             <div key={course._id} className="course-card" onClick={() => navigate(`/courses/${course._id}`)}>
               <div className="course-card__thumb">
                 📖
                 <span className={`course-card__status tag ${course.status === 'PUBLISHED' ? 'tag--success' : 'tag--warning'}`}>
-                  {course.status}
+                  {t(`status.${course.status}`) || course.status}
                 </span>
               </div>
               <div className="course-card__body">
                 <h3 className="course-card__title">{course.title}</h3>
                 <div className="course-card__meta">
                   <span>👤 {course.created_by?.full_name}</span>
-                  <span>📅 {new Date(course.created_at).toLocaleDateString('vi-VN')}</span>
+                  <span>📅 {new Date(course.created_at).toLocaleDateString(locale)}</span>
                 </div>
               </div>
             </div>
@@ -150,7 +155,7 @@ export default function GroupDetail() {
       {tab === 'assignments' && (
         <div style={{ display:'flex', flexDirection:'column', gap:'1rem' }}>
           {assignments.length === 0 ? (
-            <div className="empty-state"><div className="empty-state__icon">📝</div><h3>Chưa có bài tập nào</h3></div>
+            <div className="empty-state"><div className="empty-state__icon">📝</div><h3>{t('groups.detail.assignments.empty')}</h3></div>
           ) : assignments.map(a => (
             <div key={a._id} className="card" style={{ display:'flex', alignItems:'center', gap:'1.5rem', cursor:'pointer' }} onClick={() => navigate(`/assignments/${a._id}`)}>
                <div style={{ width:48, height:48, borderRadius:12, background:'rgba(108,99,255,0.1)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.5rem', flexShrink:0 }}>
@@ -159,12 +164,12 @@ export default function GroupDetail() {
               <div style={{ flex:1 }}>
                 <h3 style={{ fontSize:'1rem', fontWeight:600 }}>{a.title}</h3>
                 <div style={{ display:'flex', gap:'1rem', marginTop:'0.25rem', fontSize:'0.8rem', color:'var(--text-3)' }}>
-                  <span>Hạn nộp: {new Date(a.due_at).toLocaleString('vi-VN')}</span>
-                  <span>Điểm tối đa: {a.max_score}</span>
+                  <span>{t('groups.detail.assignments.due', { date: new Date(a.due_at).toLocaleString(locale) })}</span>
+                  <span>{t('groups.detail.assignments.max_score', { score: a.max_score })}</span>
                 </div>
               </div>
               <span className={`tag ${new Date() > new Date(a.due_at) ? 'tag--danger' : 'tag--primary'}`}>
-                {new Date() > new Date(a.due_at) ? 'Đã hết hạn' : 'Đang mở'}
+                {new Date() > new Date(a.due_at) ? t('status.OVERDUE') : t('common.open') || 'Đang mở'}
               </span>
             </div>
           ))}
@@ -195,7 +200,7 @@ export default function GroupDetail() {
       {tab === 'requests' && canManage && (
         <div style={{ display:'flex', flexDirection:'column', gap:'0.5rem' }}>
           {requests.length === 0 ? (
-            <div className="empty-state"><div className="empty-state__icon">✅</div><h3>Không có yêu cầu nào</h3></div>
+            <div className="empty-state"><div className="empty-state__icon">✅</div><h3>{t('groups.detail.requests.empty')}</h3></div>
           ) : requests.map(r => (
             <div key={r._id} style={{ display:'flex', alignItems:'center', gap:'1rem', padding:'1rem', background:'var(--bg-2)', border:'1px solid var(--border)', borderRadius:'var(--radius-sm)' }}>
               <div className="avatar">{r.user_id?.full_name?.charAt(0) || '?'}</div>
@@ -203,12 +208,12 @@ export default function GroupDetail() {
                 <div style={{ fontWeight:600, fontSize:'0.875rem' }}>{r.user_id?.full_name}</div>
                 <div style={{ fontSize:'0.75rem', color:'var(--text-3)' }}>{r.user_id?.email}</div>
                 <div style={{ fontSize:'0.85rem', marginTop: 4, padding: 8, background: 'var(--bg-3)', borderRadius: 6 }}>
-                  "{r.message || 'Không có lời nhắn'}"
+                  "{r.message || t('groups.detail.requests.no_message')}"
                 </div>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <button className="btn btn-primary btn-sm" onClick={() => handleRequest(r._id, 'APPROVED')}>Duyệt</button>
-                <button className="btn btn-danger btn-sm" onClick={() => handleRequest(r._id, 'REJECTED')}>Từ chối</button>
+                <button className="btn btn-primary btn-sm" onClick={() => handleRequest(r._id, 'APPROVED')}>{t('groups.detail.requests.approve')}</button>
+                <button className="btn btn-danger btn-sm" onClick={() => handleRequest(r._id, 'REJECTED')}>{t('groups.detail.requests.reject')}</button>
               </div>
             </div>
           ))}

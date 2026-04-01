@@ -1,24 +1,14 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import Layout from '../components/Layout'
 import CrudModal from '../components/CrudModal'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
 
-const GROUP_FIELDS = [
-  { name: 'name',        label: 'Tên nhóm',     type: 'text',     required: true, placeholder: 'VD: Nhóm Lập trình Web' },
-  { name: 'description', label: 'Mô tả',         type: 'textarea', placeholder: 'Mô tả về nhóm học...' },
-  { name: 'category',    label: 'Danh mục',      type: 'text',     placeholder: 'VD: Lập trình, Toán, Ngoại ngữ...' },
-  { name: 'visibility',  label: 'Chế độ',        type: 'select',   required: true,
-    options: [{ value: 'PUBLIC', label: '🌐 Công khai' }, { value: 'PRIVATE', label: '🔒 Riêng tư' }],
-    default: 'PUBLIC' },
-  { name: 'max_members', label: 'Số thành viên tối đa', type: 'number', min: 2, placeholder: '50', default: 50 }
-]
-
-const COLORS = ['#6c63ff','#00d4ff','#f59e0b','#22c55e','#ef4444','#a855f7']
-const visIcon = { PUBLIC: '🌐', PRIVATE: '🔒' }
 
 export default function Groups() {
+  const { t } = useTranslation()
   const { user } = useAuth()
   const canManage = user?.role === 'ADMIN' || user?.role === 'INSTRUCTOR'
 
@@ -27,6 +17,19 @@ export default function Groups() {
   const [modal,    setModal]    = useState(null)
   const [deleting, setDeleting] = useState(null)
   const navigate = useNavigate()
+
+  const GROUP_FIELDS = useMemo(() => [
+    { name: 'name',        label: t('groups.form.title_label'),     type: 'text',     required: true, placeholder: t('groups.form.name_placeholder') },
+    { name: 'description', label: t('groups.form.desc_label'),         type: 'textarea', placeholder: t('groups.form.desc_placeholder') },
+    { name: 'category',    label: t('groups.form.category_label'),      type: 'text',     placeholder: t('groups.form.category_placeholder') },
+    { name: 'visibility',  label: t('common.status'),        type: 'select',   required: true,
+      options: [
+        { value: 'PUBLIC', label: `🌐 ${t('groups.visibility.PUBLIC')}` }, 
+        { value: 'PRIVATE', label: `🔒 ${t('groups.visibility.PRIVATE')}` }
+      ],
+      default: 'PUBLIC' },
+    { name: 'max_members', label: t('groups.form.max_members_label'), type: 'number', min: 2, placeholder: '50', default: 50 }
+  ], [t])
 
   const fetchGroups = useCallback(() => {
     setLoading(true)
@@ -50,13 +53,13 @@ export default function Groups() {
 
   const handleDelete = async (e, id) => {
     e.stopPropagation()
-    if (!window.confirm('Bạn có chắc muốn xóa nhóm này?')) return
+    if (!window.confirm(t('groups.delete_confirm'))) return
     setDeleting(id)
     try {
       await api.delete(`/study-groups/${id}`)
       setGroups(prev => prev.filter(g => g._id !== id))
     } catch (err) {
-      alert(err?.response?.data?.error || 'Xóa thất bại')
+      alert(err?.response?.data?.error || t('common.error_fail'))
     } finally {
       setDeleting(null)
     }
@@ -72,15 +75,15 @@ export default function Groups() {
 
   const handleJoin = async (e, g) => {
     e.stopPropagation()
-    const msg = g.visibility === 'PRIVATE' ? prompt('Nhập lời nhắn cho quản trị viên nhóm:') : ''
+    const msg = g.visibility === 'PRIVATE' ? prompt(t('groups.join_modal.message_placeholder')) : ''
     if (g.visibility === 'PRIVATE' && msg === null) return // cancelled
 
     try {
-      const { data } = await api.post(`/study-groups/${g._id}/join-requests`, { message: msg })
-      alert(data.message)
+       await api.post(`/study-groups/${g._id}/join-requests`, { message: msg })
+      alert(t('groups.join_modal.success'))
       fetchGroups()
     } catch (err) {
-      alert(err?.response?.data?.error || 'Lỗi khi gửi yêu cầu')
+      alert(err?.response?.data?.error || t('common.error_fail'))
     }
   }
 
@@ -97,17 +100,20 @@ export default function Groups() {
     return 'NONE'
   }
 
+  const COLORS = ['#6c63ff','#00d4ff','#f59e0b','#22c55e','#ef4444','#a855f7']
+  const visIcon = { PUBLIC: '🌐', PRIVATE: '🔒' }
+
   return (
     <Layout>
       <div className="page-header">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
-            <h1>Nhóm học tập 👥</h1>
-            <p>Tham gia nhóm và học cùng nhau</p>
+            <h1>{t('groups.title')} 👥</h1>
+            <p>{t('groups.subtitle', { count: groups.length })}</p>
           </div>
           {canManage && (
             <button className="btn btn-primary" onClick={() => setModal('create')}>
-              ➕ Tạo nhóm
+              + {t('groups.create_group')}
             </button>
           )}
         </div>
@@ -117,8 +123,8 @@ export default function Groups() {
       : groups.length === 0 ? (
         <div className="empty-state">
           <div className="empty-state__icon">👥</div>
-          <h3>Chưa có nhóm học nào</h3>
-          {canManage && <p>Nhấn "Tạo nhóm" để bắt đầu!</p>}
+          <h3>{t('groups.no_groups')}</h3>
+          {canManage && <p>{t('common.start_guide', { action: t('groups.create_group') })}</p>}
         </div>
       ) : (
         <div className="grid-auto">
@@ -141,13 +147,13 @@ export default function Groups() {
                     <>
                       <button
                         className="btn btn-secondary btn-sm"
-                        title="Sửa"
+                        title={t('common.manage')}
                         onClick={e => { e.stopPropagation(); setModal(g) }}
                         style={{ padding: '2px 8px', fontSize: '0.8rem' }}
                       >✏️</button>
                       <button
                         className="btn btn-sm"
-                        title="Xóa"
+                        title={t('common.delete')}
                         style={{ background: 'var(--danger)', color: '#fff', padding: '2px 8px', fontSize: '0.8rem' }}
                         onClick={e => handleDelete(e, g._id)}
                         disabled={deleting === g._id}
@@ -158,27 +164,27 @@ export default function Groups() {
               </div>
 
               <p style={{ fontSize: '0.85rem', marginBottom: '1rem', WebkitLineClamp: 2, display: '-webkit-box', WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                {g.description || 'Không có mô tả'}
+                {g.description || t('common.no_description')}
               </p>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--text-3)' }}>
-                <span>👤 {g.member_count} thành viên</span>
+                <span>👤 {t('groups.members_count', { count: g.member_count })}</span>
                 <span>👑 {g.owner_id?.full_name || 'GV'}</span>
               </div>
 
               {getJoinStatus(g) === 'MEMBER' ? (
                 <button className="btn btn-primary btn-sm" style={{ width: '100%', justifyContent: 'center', marginTop: '1rem' }}
                   onClick={e => { e.stopPropagation(); navigate(`/groups/${g._id}`) }}>
-                  Xem nhóm →
+                  {t('groups.joined')} →
                 </button>
               ) : getJoinStatus(g) === 'PENDING' ? (
                 <button className="btn btn-secondary btn-sm" disabled style={{ width: '100%', justifyContent: 'center', marginTop: '1rem' }}>
-                  ⏳ Đang chờ duyệt
+                  ⏳ {t('groups.pending')}
                 </button>
               ) : (
                 <button className="btn btn-primary btn-sm" style={{ width: '100%', justifyContent: 'center', marginTop: '1rem' }}
                   onClick={e => handleJoin(e, g)}>
-                  {g.visibility === 'PUBLIC' ? 'Tham gia ngay' : 'Xin vào nhóm'}
+                  {g.visibility === 'PUBLIC' ? t('groups.join') : t('groups.join')}
                 </button>
               )}
             </div>
@@ -189,13 +195,13 @@ export default function Groups() {
       {/* Role badge */}
       {user && (
         <div style={{ textAlign: 'right', marginTop: '1rem', fontSize: '0.75rem', color: 'var(--text-3)' }}>
-          Đang đăng nhập: <strong>{user.full_name}</strong> · Vai trò: <strong>{user.role}</strong>
+          {t('courses.logged_in_as', { name: user.full_name, role: user.role })}
         </div>
       )}
 
       {modal && (
         <CrudModal
-          title={modal === 'create' ? 'Tạo nhóm học mới' : `Sửa: ${modal.name}`}
+          title={modal === 'create' ? t('groups.create_group') : `${t('common.manage')}: ${modal.name}`}
           fields={GROUP_FIELDS}
           initialData={modal === 'create' ? null : editInitial(modal)}
           onSubmit={handleSubmit}

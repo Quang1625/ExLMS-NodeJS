@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import Layout from '../components/Layout'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
 import LikeButton from '../components/LikeButton'
 
 export default function Forum() {
+  const { t, i18n } = useTranslation()
   const navigate = useNavigate()
   const { user } = useAuth()
   const [posts, setPosts] = useState([])
@@ -34,13 +36,13 @@ export default function Forum() {
   const filtered = activeTag ? posts.filter(p => p.tag_ids?.some(t => t._id === activeTag)) : posts
 
   const handleDelete = async (postId) => {
-    if (!window.confirm('Xác nhận xoá bài này?')) return
+    if (!window.confirm(t('forum.delete_confirm'))) return
     try {
       await api.delete(`/forum/posts/${postId}`)
       setPosts(prev => prev.filter(p => p._id !== postId))
     } catch (err) {
       console.error(err)
-      alert(err.response?.data?.error || 'Xoá bài thất bại')
+      alert(err.response?.data?.error || t('forum.delete_fail'))
     }
   }
 
@@ -55,11 +57,11 @@ export default function Forum() {
         marginBottom: '2rem'
       }}>
         <div>
-          <h1 style={{ fontSize: '2.25rem', marginBottom: '0.5rem', background: 'linear-gradient(135deg, #fff, var(--text-2))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Diễn đàn 💬</h1>
-          <p style={{ fontSize: '1rem', color: 'var(--text-3)' }}>Khám phá và thảo luận cùng cộng đồng ({posts.length} bài đăng)</p>
+          <h1 style={{ fontSize: '2.25rem', marginBottom: '0.5rem', background: 'linear-gradient(135deg, #fff, var(--text-2))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{t('forum.title')} 💬</h1>
+          <p style={{ fontSize: '1rem', color: 'var(--text-3)' }}>{t('forum.subtitle', { count: posts.length })}</p>
         </div>
         <button className="btn btn-primary" style={{ padding: '0.75rem 1.5rem', borderRadius: '14px' }} onClick={() => navigate('/forum/new')}>
-          <span style={{ fontSize: '1.25rem' }}>+</span> Bài đăng mới
+          <span style={{ fontSize: '1.25rem' }}>+</span> {t('forum.new_post')}
         </button>
       </div>
 
@@ -79,16 +81,18 @@ export default function Forum() {
               border: '1px solid var(--border)',
               width: 'fit-content'
             }}>
-              <button className={`tag ${!activeTag ? 'tag--primary' : ''}`}
+              <button 
+                className={`tag ${!activeTag ? 'tag--primary' : ''}`}
                 style={{
                   cursor: 'pointer',
                   padding: '6px 16px',
-                  fontSize: '0.85rem',
-                  backgroundColor: !activeTag ? 'var(--primary)' : 'transparent',
+                  borderRadius: '100px',
+                  backgroundColor: !activeTag ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
                   color: !activeTag ? '#fff' : 'var(--text-2)',
+                  border: 'none',
                   transition: 'all 0.2s ease'
                 }}
-                onClick={() => setActiveTag(null)}>Tất cả</button>
+                onClick={() => setActiveTag(null)}>{t('common.all')}</button>
               {tags.map(t => (
                 <button key={t._id}
                   className="tag"
@@ -112,8 +116,8 @@ export default function Forum() {
             : filtered.length === 0 ? (
               <div className="empty-state fade-in">
                 <div className="empty-state__icon">💬</div>
-                <h3>Chưa có bài đăng nào</h3>
-                <p>Hãy là người đầu tiên chia sẻ suy nghĩ của bạn!</p>
+                <h3>{t('forum.no_posts')}</h3>
+                <p>{t('forum.be_first')}</p>
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: '1.5rem' }}>
@@ -143,20 +147,10 @@ export default function Forum() {
                         if (e.target.closest('.btn') || e.target.closest('.tag') || e.target.closest('.like-button')) return;
                         navigate(`/forum/${p._id}`);
                       }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = 'translateY(-6px)';
-                        e.currentTarget.style.borderColor = 'var(--primary)';
-                        e.currentTarget.style.boxShadow = 'var(--shadow-lg)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = 'translateY(0)';
-                        e.currentTarget.style.borderColor = 'var(--border)';
-                        e.currentTarget.style.boxShadow = 'none';
-                      }}
                     >
                       {p.is_pinned && (
                         <div style={{ position: 'absolute', top: 0, right: 0, padding: '4px 12px', background: 'var(--warning)', color: '#000', fontSize: '0.7rem', fontWeight: 800, borderBottomLeftRadius: '12px' }}>
-                          GHIM
+                          {t('forum.pinned')}
                         </div>
                       )}
 
@@ -177,7 +171,7 @@ export default function Forum() {
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column' }}>
                           <span style={{ fontWeight: 600, color: 'var(--text-2)' }}>{p.author_id?.full_name}</span>
-                          <span style={{ fontSize: '0.75rem' }}>{new Date(p.created_at).toLocaleDateString('vi-VN')}</span>
+                          <span style={{ fontSize: '0.75rem' }}>{new Date(p.created_at).toLocaleDateString(i18n.language === 'en' ? 'en-US' : 'vi-VN')}</span>
                         </div>
                       </div>
 
@@ -217,7 +211,7 @@ export default function Forum() {
                           <LikeButton post={p} user={user} initialVoteType={initialVoteType} />
                           <button className="vote-btn" style={{ background: 'var(--glass)', padding: '6px 12px' }} onClick={(e) => { e.stopPropagation(); navigate(`/forum/${p._id}`); }}>
                             <span style={{ fontSize: '0.9rem' }}>💬</span>
-                            <span>Bình luận</span>
+                            <span>{t('forum.comments_count')}</span>
                           </button>
                         </div>
 

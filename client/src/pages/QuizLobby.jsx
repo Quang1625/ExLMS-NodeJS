@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import Layout from '../components/Layout'
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
@@ -8,6 +9,7 @@ import QuizNavbar from '../components/QuizNavbar';
 
 
 export default function QuizLobby() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { socket } = useSocket();
   const navigate = useNavigate();
@@ -35,7 +37,7 @@ export default function QuizLobby() {
         setJoined(true);
       }
     } catch (err) {
-      setError('Mã phòng không hợp lệ hoặc phòng đã đóng.');
+      setError(t('quiz.invalid_code'));
     } finally {
       setLoading(false);
     }
@@ -67,13 +69,13 @@ export default function QuizLobby() {
         <QuizNavbar />
         <div className="quiz-container glass-card">
           <h1 style={{ fontSize: '3.5rem', fontWeight: 900, marginBottom: '0.5rem', background: 'linear-gradient(to right, #fff, #888)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-            THAM GIA QUYẾT ĐẤU
+            {t('quiz.join_title')}
           </h1>
-          <p style={{ color: 'rgba(255,255,255,0.6)', marginBottom: '2rem', fontSize: '1.2rem' }}>Nhập mã phòng từ giảng viên để bắt đầu</p>
+          <p style={{ color: 'rgba(255,255,255,0.6)', marginBottom: '2rem', fontSize: '1.2rem' }}>{t('quiz.join_subtitle')}</p>
 
           <input
             type="text"
-            placeholder="MÃ PHÒNG"
+            placeholder={t('quiz.room_code_placeholder')}
             className="room-input"
             value={roomCode}
             onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
@@ -88,7 +90,7 @@ export default function QuizLobby() {
             onClick={joinRoom}
             disabled={loading}
           >
-            {loading ? 'Đang vào...' : 'VÀO PHÒNG NGAY 🚀'}
+            {loading ? t('quiz.joining') : t('quiz.join_btn')}
           </button>
         </div>
       </div>
@@ -100,23 +102,23 @@ export default function QuizLobby() {
       <QuizNavbar />
       <div className="quiz-container glass-card">
         <h1 style={{ fontSize: '3rem', fontWeight: 900, marginBottom: '2rem', color: 'white' }}>
-          PHÒNG CHỜ: <span style={{ color: 'var(--primary)', textShadow: '0 0 20px rgba(108,99,255,0.5)' }}>{roomCode}</span>
+          {t('quiz.lobby_label')} <span style={{ color: 'var(--primary)', textShadow: '0 0 20px rgba(108,99,255,0.5)' }}>{roomCode}</span>
         </h1>
         <div className="players-list" style={{ textAlign: 'left', background: 'rgba(0,0,0,0.2)', padding: '2rem', borderRadius: '24px', marginBottom: '2rem' }}>
           <h3 style={{ color: 'rgba(255,255,255,0.8)', marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between' }}>
-            <span>Người chơi đã tham gia</span>
+            <span>{t('quiz.players_joined')}</span>
             <span>{players.length} 👤</span>
           </h3>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '1rem' }}>
             {players.map((p, i) => (
               <div key={i} style={{ background: 'rgba(255,255,255,0.1)', padding: '0.75rem 1rem', borderRadius: '100px', textAlign: 'center', fontWeight: 600 }}>
-                {p.name} {p.user_id === user?._id && '(Bạn)'}
+                {p.name} {p.user_id === user?._id && t('quiz.you')}
               </div>
             ))}
           </div>
         </div>
         <div className="pulse" style={{ fontSize: '1.2rem', color: 'var(--primary)', fontWeight: 700 }}>
-          🔥 Đang chờ giảng viên bắt đầu trận đấu...
+          {t('quiz.waiting_for_host')}
         </div>
       </div>
     </div>

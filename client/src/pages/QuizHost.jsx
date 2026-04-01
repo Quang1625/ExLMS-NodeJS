@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
 import { useSocket } from '../context/SocketContext'
 import api from '../api/axios'
 import QuizNavbar from '../components/QuizNavbar'
 
 export default function QuizHost() {
+  const { t } = useTranslation()
   const { code } = useParams()
   const navigate = useNavigate()
   const { user } = useAuth()
@@ -62,7 +63,11 @@ export default function QuizHost() {
     }
   }
 
-  if (!room) return <div className="quiz-page-bg" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}><h1>Đang tải đấu trường...</h1></div>
+  if (!room) return (
+    <div className="quiz-page-bg" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <h1>{t('quiz.loading_room')}</h1>
+    </div>
+  )
 
   return (
     <div className="quiz-page-bg">
@@ -70,25 +75,25 @@ export default function QuizHost() {
       <div className="quiz-play-container">
         <header className="quiz-header" style={{ marginBottom: '2rem' }}>
           <div>
-            <h1 style={{ margin: 0, fontSize: '1.5rem', opacity: 0.8 }}>Quản lý Quiz:</h1>
+            <h1 style={{ margin: 0, fontSize: '1.5rem', opacity: 0.8 }}>{t('quiz.manage_quiz')}</h1>
             <h2 style={{ margin: 0, fontSize: '2.5rem', fontWeight: 900 }}>{room.quiz_id.title}</h2>
           </div>
           <div className="glass-card" style={{ padding: '1rem 2rem', borderRadius: '20px', textAlign: 'center', border: '2px solid var(--primary)' }}>
-            <div style={{ fontSize: '0.8rem', opacity: 0.7, textTransform: 'uppercase' }}>Mã phòng</div>
+            <div style={{ fontSize: '0.8rem', opacity: 0.7, textTransform: 'uppercase' }}>{t('quiz.room_code')}</div>
             <div style={{ fontSize: '2.5rem', fontWeight: 900, letterSpacing: '0.1em', color: 'var(--primary)' }}>{code}</div>
           </div>
         </header>
 
         {status === 'LOBBY' && (
           <div className="glass-card" style={{ textAlign: 'center' }}>
-            <h2 style={{ fontSize: '2rem', marginBottom: '2rem' }}>🔥 Người chơi đang chờ ({players.length})</h2>
+            <h2 style={{ fontSize: '2rem', marginBottom: '2rem' }}>🔥 {t('quiz.waiting_players', { count: players.length })}</h2>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '1rem', marginBottom: '3rem' }}>
               {players.map((p, i) => (
                 <div key={i} style={{ background: 'rgba(255,255,255,0.1)', padding: '1rem', borderRadius: '100px', fontWeight: 600 }}>
                   {p.name}
                 </div>
               ))}
-              {players.length === 0 && <p style={{ gridColumn: '1/-1', opacity: 0.5 }}>Đang chờ các chiến binh gia nhập...</p>}
+              {players.length === 0 && <p style={{ gridColumn: '1/-1', opacity: 0.5 }}>{t('quiz.waiting_join')}</p>}
             </div>
             <button
               onClick={startQuiz}
@@ -96,7 +101,7 @@ export default function QuizHost() {
               style={{ padding: '1.5rem 4rem', fontSize: '1.5rem', borderRadius: '100px', background: 'linear-gradient(to right, #6c63ff, #38ef7d)', border: 'none', cursor: 'pointer', boxShadow: '0 10px 30px rgba(108,99,255,0.4)' }}
               disabled={players.length === 0}
             >
-              BẮT ĐẦU TRẬN ĐẤU 🚀
+              {t('quiz.start_btn')}
             </button>
           </div>
         )}
@@ -104,24 +109,24 @@ export default function QuizHost() {
         {status === 'IN_PROGRESS' && (
           <div className="glass-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-              <h2 style={{ margin: 0 }}>📊 Theo dõi trực tiếp</h2>
+              <h2 style={{ margin: 0 }}>{t('quiz.live_track')}</h2>
               <button
                 onClick={nextQuestion}
                 className="btn btn-primary"
                 style={{ padding: '1rem 2rem', borderRadius: '100px', background: '#ff4b2b', border: 'none', fontWeight: 700, cursor: 'pointer' }}
               >
-                CÂU HỎI TIẾP THEO / KẾT THÚC ➡️
+                {t('quiz.next_end')}
               </button>
             </div>
 
             <div style={{ background: 'rgba(0,0,0,0.2)', padding: '2rem', borderRadius: '24px' }}>
-              <h3 style={{ marginBottom: '1.5rem', opacity: 0.7 }}>BẢNG XẾP HẠNG THỜI GIAN THỰC</h3>
+              <h3 style={{ marginBottom: '1.5rem', opacity: 0.7 }}>{t('quiz.realtime_leaderboard')}</h3>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ borderBottom: '2px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.5)' }}>
-                    <th style={{ padding: '1rem', textAlign: 'left' }}>HẠNG</th>
-                    <th style={{ padding: '1rem', textAlign: 'left' }}>CHIẾN BINH</th>
-                    <th style={{ padding: '1rem', textAlign: 'right' }}>ĐIỂM SỐ</th>
+                    <th style={{ padding: '1rem', textAlign: 'left' }}>{t('quiz.rank')}</th>
+                    <th style={{ padding: '1rem', textAlign: 'left' }}>{t('quiz.participant')}</th>
+                    <th style={{ padding: '1rem', textAlign: 'right' }}>{t('quiz.score')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -140,14 +145,14 @@ export default function QuizHost() {
 
         {status === 'FINISHED' && (
           <div className="glass-card" style={{ textAlign: 'center' }}>
-            <h2 style={{ fontSize: '3rem', marginBottom: '2rem' }}>🏁 TRẬN ĐẤU KẾT THÚC</h2>
-            <p style={{ fontSize: '1.5rem', marginBottom: '3rem', opacity: 0.7 }}>Kết quả đã được gửi tới tất cả người chơi.</p>
+            <h2 style={{ fontSize: '3rem', marginBottom: '2rem' }}>{t('quiz.finished_status')}</h2>
+            <p style={{ fontSize: '1.5rem', marginBottom: '3rem', opacity: 0.7 }}>{t('quiz.results_sent')}</p>
             <button
               onClick={() => navigate('/courses')}
               className="btn btn-secondary"
               style={{ padding: '1rem 3rem', borderRadius: '100px', cursor: 'pointer' }}
             >
-              Quay lại danh sách khóa học
+              {t('quiz.back_to_courses')}
             </button>
           </div>
         )}

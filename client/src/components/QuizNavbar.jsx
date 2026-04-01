@@ -1,6 +1,8 @@
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 
 export default function QuizNavbar() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
 
   return (
@@ -10,12 +12,12 @@ export default function QuizNavbar() {
         <span>ExLMS</span>
       </div>
       <div className="quiz-navbar__links">
-        <button className="quiz-navbar__link" onClick={() => navigate('/')}>🏠 Dashboard</button>
-        <button className="quiz-navbar__link" onClick={() => navigate('/courses')}>📚 Khóa học</button>
-        <button className="quiz-navbar__link" onClick={() => navigate('/quiz/dashboard')}>📊 Kết quả</button>
+        <button className="quiz-navbar__link" onClick={() => navigate('/')}>🏠 {t('sidebar.dashboard')}</button>
+        <button className="quiz-navbar__link" onClick={() => navigate('/courses')}>📚 {t('sidebar.courses')}</button>
+        <button className="quiz-navbar__link" onClick={() => navigate('/quiz/dashboard')}>📊 {t('sidebar.quiz_dashboard')}</button>
       </div>
       <button className="quiz-navbar__exit quiz-navbar__link" onClick={() => navigate('/courses')} style={{ cursor: 'pointer' }}>
-        🚪 Thoát
+        🚪 {t('sidebar.logout') || 'Exit'}
       </button>
     </nav>
   )

@@ -1,37 +1,39 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-
-const navItems = [
-  { section: 'Tổng quan', links: [
-    { to: '/', icon: '🏠', label: 'Dashboard', end: true },
-    { to: '/notifications', icon: '🔔', label: 'Thông báo' },
-    { to: '/calendar', icon: '📅', label: 'Lịch biểu' },
-  ]},
-  { section: 'Học tập', links: [
-    { to: '/courses', icon: '📚', label: 'Khóa học' },
-    { to: '/assignments', icon: '📝', label: 'Bài tập' },
-    { to: '/exams', icon: '📋', label: 'Bài kiểm tra' },
-    { to: '/quiz/join', icon: '⚡', label: 'Quiz Realtime' },
-    { to: '/quiz/dashboard', icon: '📊', label: 'Bảng điều khiển Quiz' },
-    { to: '/groups', icon: '👥', label: 'Nhóm học' },
-  ]},
-  { section: 'Cộng đồng', links: [
-    { to: '/forum', icon: '💬', label: 'Diễn đàn' },
-  ]},
-]
-
-const adminNavItems = [
-  { section: 'Quản trị', links: [
-    { to: '/admin', icon: '⚙️', label: 'Quản lý người dùng' },
-  ]},
-]
+import { useTranslation } from 'react-i18next'
 
 export default function Sidebar({ isOpen, onClose }) {
+  const { t } = useTranslation()
   const { user, logout } = useAuth()
   const navigate = useNavigate()
 
+  const navItems = [
+    { section: t('sidebar.sections.overview'), links: [
+      { to: '/', icon: '🏠', label: t('sidebar.dashboard'), end: true },
+      { to: '/notifications', icon: '🔔', label: t('sidebar.notifications') },
+      { to: '/calendar', icon: '📅', label: t('sidebar.calendar') },
+    ]},
+    { section: t('sidebar.sections.learning'), links: [
+      { to: '/courses', icon: '📚', label: t('sidebar.courses') },
+      { to: '/assignments', icon: '📝', label: t('sidebar.assignments') },
+      { to: '/exams', icon: '📋', label: t('sidebar.exams') },
+      { to: '/quiz/join', icon: '⚡', label: t('sidebar.quiz_realtime') },
+      { to: '/quiz/dashboard', icon: '📊', label: t('sidebar.quiz_dashboard') },
+      { to: '/groups', icon: '👥', label: t('sidebar.groups') },
+    ]},
+    { section: t('sidebar.sections.community'), links: [
+      { to: '/forum', icon: '💬', label: t('sidebar.forum') },
+    ]},
+  ]
+
+  const adminNavItems = [
+    { section: t('sidebar.sections.admin'), links: [
+      { to: '/admin', icon: '⚙️', label: t('sidebar.admin_users') },
+    ]},
+  ]
+
   const handleLogout = async () => {
-    if (!window.confirm('Bạn có chắc muốn đăng xuất không?')) return
+    if (!window.confirm(t('sidebar.logout_confirm'))) return
     await logout()
     navigate('/login')
     onClose()
@@ -45,8 +47,6 @@ export default function Sidebar({ isOpen, onClose }) {
 
   const initials = user?.full_name
     ?.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase() || '?'
-
-  const roleLabel = { ADMIN: 'Quản trị viên', INSTRUCTOR: 'Giảng viên', STUDENT: 'Sinh viên' }
 
   return (
     <aside className={`sidebar ${isOpen ? 'sidebar--open' : ''}`}>
@@ -93,14 +93,14 @@ export default function Sidebar({ isOpen, onClose }) {
         ))}
 
         {/* Logout as nav item */}
-        <p className="sidebar__section-label" style={{ marginTop: '0.5rem' }}>Tài khoản</p>
+        <p className="sidebar__section-label" style={{ marginTop: '0.5rem' }}>{t('sidebar.sections.account')}</p>
         <NavLink
             to="/profile"
             className={({ isActive }) => `sidebar__link${isActive ? ' active' : ''}`}
             onClick={handleNavClick}
         >
             <span className="icon">👤</span>
-            Trang cá nhân
+            {t('sidebar.profile')}
         </NavLink>
         <button
           className="sidebar__link"
@@ -108,7 +108,7 @@ export default function Sidebar({ isOpen, onClose }) {
           style={{ width: '100%', color: 'var(--danger)', textAlign: 'left' }}
         >
           <span className="icon">🚪</span>
-          Đăng xuất
+          {t('sidebar.logout')}
         </button>
       </nav>
       
@@ -117,7 +117,7 @@ export default function Sidebar({ isOpen, onClose }) {
         <div className="avatar">{initials}</div>
         <div className="sidebar__user-info">
           <div className="sidebar__user-name">{user?.full_name}</div>
-          <div className="sidebar__user-role">{roleLabel[user?.role] || user?.role}</div>
+          <div className="sidebar__user-role">{t(`sidebar.roles.${user?.role}`) || user?.role}</div>
         </div>
       </div>
 

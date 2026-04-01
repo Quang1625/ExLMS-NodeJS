@@ -1,14 +1,11 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 /**
  * QuizQuestionEditor - Advanced component to manage quiz questions and answers
- * 
- * Props:
- *  quiz     : object (the quiz to edit)
- *  onSave   : async (updatedQuiz) => void
- *  onCancel : () => void
  */
 export default function QuizQuestionEditor({ quiz, onSave, onCancel }) {
+  const { t } = useTranslation()
   const [questions, setQuestions] = useState(quiz.questions || [])
   const [metadata, setMetadata] = useState({
     quiz_type: quiz.quiz_type || 'PRACTICE',
@@ -61,7 +58,6 @@ export default function QuizQuestionEditor({ quiz, onSave, onCancel }) {
     const question = next[qIndex]
     
     if (field === 'is_correct' && (question.question_type === 'SINGLE_CHOICE' || question.question_type === 'TRUE_FALSE')) {
-      // Uncheck others if single choice
       question.answers = question.answers.map((a, i) => ({
         ...a,
         is_correct: i === aIndex ? value : false
@@ -74,19 +70,18 @@ export default function QuizQuestionEditor({ quiz, onSave, onCancel }) {
 
   const handleSave = async () => {
     setError('')
-    // Basic validation
     for (let i = 0; i < questions.length; i++) {
       const q = questions[i]
-      if (!q.content.trim()) return setError(`Câu hỏi #${i+1} chưa có nội dung`)
-      if (q.answers.length < 2 && q.question_type !== 'SHORT_ANSWER') return setError(`Câu hỏi #${i+1} cần ít nhất 2 phương án`)
-      if (!q.answers.some(a => a.is_correct) && q.question_type !== 'SHORT_ANSWER') return setError(`Câu hỏi #${i+1} chưa chọn đáp án đúng`)
+      if (!q.content.trim()) return setError(t('quiz.editor.validation.content_empty', { index: i + 1 }))
+      if (q.answers.length < 2 && q.question_type !== 'SHORT_ANSWER') return setError(t('quiz.editor.validation.min_answers', { index: i + 1 }))
+      if (!q.answers.some(a => a.is_correct) && q.question_type !== 'SHORT_ANSWER') return setError(t('quiz.editor.validation.no_correct', { index: i + 1 }))
     }
 
     setLoading(true)
     try {
       await onSave({ ...quiz, ...metadata, questions })
     } catch (err) {
-      setError(err?.response?.data?.error || 'Lưu thất bại')
+      setError(err?.response?.data?.error || t('common.error_fail'))
     } finally {
       setLoading(false)
     }
@@ -98,13 +93,13 @@ export default function QuizQuestionEditor({ quiz, onSave, onCancel }) {
         {/* Header */}
         <div style={header}>
           <div>
-            <h2 style={{ margin: 0 }}>Quản lý câu hỏi</h2>
+            <h2 style={{ margin: 0 }}>{t('quiz.editor.manage_questions')}</h2>
             <p style={{ margin: '4px 0 0', fontSize: '0.9rem', color: 'var(--text-3)' }}>Quiz: {quiz.title}</p>
           </div>
           <div style={{ display:'flex', gap: 10 }}>
-            <button className="btn btn-secondary" onClick={onCancel} disabled={loading}>Đóng</button>
+            <button className="btn btn-secondary" onClick={onCancel} disabled={loading}>{t('common.close')}</button>
             <button className="btn btn-primary" onClick={handleSave} disabled={loading}>
-              {loading ? 'Đang lưu...' : '💾 Lưu bộ câu hỏi'}
+              {loading ? t('profile.saving') : `💾 ${t('quiz.editor.save_questions')}`}
             </button>
           </div>
         </div>
@@ -115,21 +110,21 @@ export default function QuizQuestionEditor({ quiz, onSave, onCancel }) {
 
           {/* Global Settings */}
           <div className="glass-card" style={{ ...questionCard, marginBottom: '2rem', borderTop: '4px solid var(--primary)' }}>
-            <h3 style={{ marginBottom: '1.5rem', display:'flex', alignItems:'center', gap:10 }}>⚙️ Cài đặt bài thi</h3>
+            <h3 style={{ marginBottom: '1.5rem', display:'flex', alignItems:'center', gap:10 }}>⚙️ {t('quiz.editor.quiz_settings')}</h3>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
               <div>
-                <label style={labelStyle}>Loại Quiz</label>
+                <label style={labelStyle}>{t('quiz.editor.quiz_type')}</label>
                 <select 
                   style={inputStyle}
                   value={metadata.quiz_type}
                   onChange={e => setMetadata({ ...metadata, quiz_type: e.target.value })}
                 >
-                  <option value="PRACTICE">Luyện tập</option>
-                  <option value="EXAM">Bài kiểm tra (Chính thức)</option>
+                  <option value="PRACTICE">{t('course_detail.practice_label')}</option>
+                  <option value="EXAM">{t('course_detail.exam_label')}</option>
                 </select>
               </div>
               <div>
-                <label style={labelStyle}>Mã phòng thi (Room Code)</label>
+                <label style={labelStyle}>{t('quiz.editor.access_code')}</label>
                 <input 
                   type="text" 
                   style={inputStyle} 
@@ -137,7 +132,7 @@ export default function QuizQuestionEditor({ quiz, onSave, onCancel }) {
                   value={metadata.access_code}
                   onChange={e => setMetadata({ ...metadata, access_code: e.target.value.toUpperCase() })}
                 />
-                <p style={{ fontSize: '0.75rem', color: 'var(--text-3)', marginTop: 4 }}>Bắt buộc nhập mã này để vào thi (chỉ áp dụng cho Exam)</p>
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-3)', marginTop: 4 }}>{t('quiz.editor.access_code_hint')}</p>
               </div>
             </div>
           </div>
@@ -145,9 +140,9 @@ export default function QuizQuestionEditor({ quiz, onSave, onCancel }) {
           {questions.length === 0 ? (
             <div style={{ textAlign:'center', padding:'4rem 2rem', background:'var(--bg-3)', borderRadius:12, border:'2px dashed var(--border)' }}>
               <div style={{ fontSize:'3rem', marginBottom:'1rem' }}>🧩</div>
-              <h3>Chưa có câu hỏi nào</h3>
-              <p style={{ color:'var(--text-3)', marginBottom:'1.5rem' }}>Hãy bắt đầu xây dựng bộ câu hỏi cho Quiz này</p>
-              <button className="btn btn-primary" onClick={handleAddQuestion}>➕ Thêm câu hỏi đầu tiên</button>
+              <h3>{t('quiz.editor.no_questions')}</h3>
+              <p style={{ color:'var(--text-3)', marginBottom:'1.5rem' }}>{t('quiz.editor.no_questions_subtitle')}</p>
+              <button className="btn btn-primary" onClick={handleAddQuestion}>➕ {t('quiz.editor.add_first_question')}</button>
             </div>
           ) : (
             <div style={{ display:'flex', flexDirection:'column', gap:'2rem' }}>
@@ -161,22 +156,22 @@ export default function QuizQuestionEditor({ quiz, onSave, onCancel }) {
                         value={q.question_type}
                         onChange={e => handleQuestionChange(qIndex, 'question_type', e.target.value)}
                       >
-                        <option value="SINGLE_CHOICE">Trắc nghiệm (1 đáp án)</option>
-                        <option value="MULTIPLE_CHOICE">Trắc nghiệm (Nhiều đáp án)</option>
-                        <option value="TRUE_FALSE">Đúng/Sai</option>
-                        <option value="SHORT_ANSWER">Trả lời ngắn</option>
+                        <option value="SINGLE_CHOICE">{t('quiz.editor.types.SINGLE_CHOICE')}</option>
+                        <option value="MULTIPLE_CHOICE">{t('quiz.editor.types.MULTIPLE_CHOICE')}</option>
+                        <option value="TRUE_FALSE">{t('quiz.editor.types.TRUE_FALSE')}</option>
+                        <option value="SHORT_ANSWER">{t('quiz.editor.types.SHORT_ANSWER')}</option>
                       </select>
                     </div>
                     <div style={{ display:'flex', alignItems:'center', gap:12 }}>
                        <div style={{ fontSize:'0.8rem', color:'var(--text-3)' }}>
-                         Điểm: <input type="number" style={inputMini} value={q.points || 0} onChange={e => handleQuestionChange(qIndex, 'points', parseInt(e.target.value) || 0)} />
+                         {t('quiz.editor.points')}: <input type="number" style={inputMini} value={q.points || 0} onChange={e => handleQuestionChange(qIndex, 'points', parseInt(e.target.value) || 0)} />
                        </div>
                        <button style={btnDelete} onClick={() => handleRemoveQuestion(qIndex)} title="Xóa câu hỏi">✕</button>
                     </div>
                   </div>
 
                   <div style={{ marginBottom:'1.5rem' }}>
-                    <label style={labelStyle}>Nội dung câu hỏi</label>
+                    <label style={labelStyle}>{t('quiz.editor.question_content')}</label>
                     <textarea 
                       style={textareaStyle} 
                       value={q.content} 
@@ -187,20 +182,20 @@ export default function QuizQuestionEditor({ quiz, onSave, onCancel }) {
 
                   <div style={{ marginBottom:'1.5rem', display:'flex', gap:20, flexWrap:'wrap' }}>
                     <div style={{ flex: '1 1 200px' }}>
-                      <label style={labelStyle}>Đính kèm phương tiện (Tùy chọn)</label>
+                      <label style={labelStyle}>{t('quiz.editor.media_attach')}</label>
                       <select 
                         style={inputStyle}
                         value={q.media_type || 'NONE'}
                         onChange={e => handleQuestionChange(qIndex, 'media_type', e.target.value)}
                       >
-                        <option value="NONE">Không có</option>
-                        <option value="IMAGE">Hình ảnh (URL)</option>
-                        <option value="VIDEO">Video (URL)</option>
+                        <option value="NONE">{t('quiz.editor.none')}</option>
+                        <option value="IMAGE">{t('quiz.editor.image_url')}</option>
+                        <option value="VIDEO">{t('quiz.editor.video_url')}</option>
                       </select>
                     </div>
                     {q.media_type && q.media_type !== 'NONE' && (
                       <div style={{ flex: '2 1 400px' }}>
-                        <label style={labelStyle}>URL {q.media_type === 'IMAGE' ? 'Ảnh' : 'Video'}</label>
+                        <label style={labelStyle}>URL {q.media_type === 'IMAGE' ? t('course_detail.fields.file_label') : 'Video'}</label>
                         <input 
                           type="text" 
                           style={inputStyle} 
@@ -214,7 +209,7 @@ export default function QuizQuestionEditor({ quiz, onSave, onCancel }) {
 
                   {q.question_type !== 'SHORT_ANSWER' && (
                     <div>
-                      <label style={labelStyle}>Các phương án trả lời</label>
+                      <label style={labelStyle}>{t('quiz.editor.answers_label')}</label>
                       <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
                         {q.answers.map((a, aIndex) => (
                           <div key={aIndex} style={{ display:'flex', gap:10, alignItems:'center' }}>
@@ -228,7 +223,7 @@ export default function QuizQuestionEditor({ quiz, onSave, onCancel }) {
                               type="text" 
                               style={inputStyle} 
                               value={a.content} 
-                              placeholder={`Phương án ${aIndex + 1}`}
+                              placeholder={`${t('quiz.editor.add_answer')} ${aIndex + 1}`}
                               onChange={e => handleAnswerChange(qIndex, aIndex, 'content', e.target.value)}
                             />
                             <button style={btnDeleteSmall} onClick={() => handleRemoveAnswer(qIndex, aIndex)}>✕</button>
@@ -239,14 +234,14 @@ export default function QuizQuestionEditor({ quiz, onSave, onCancel }) {
                           style={{ alignSelf:'flex-start', marginTop:5, color:'var(--primary)' }}
                           onClick={() => handleAddAnswer(qIndex)}
                         >
-                          ➕ Thêm phương án
+                          ➕ {t('quiz.editor.add_answer')}
                         </button>
                       </div>
                     </div>
                   )}
 
                   <div style={{ marginTop:'1.5rem' }}>
-                    <label style={labelStyle}>Giải thích (tùy chọn)</label>
+                    <label style={labelStyle}>{t('quiz.editor.explanation')}</label>
                     <input 
                       type="text" 
                       style={inputStyle} 
@@ -259,9 +254,9 @@ export default function QuizQuestionEditor({ quiz, onSave, onCancel }) {
               ))}
               
               <button className="btn btn-primary" style={{ padding:'1rem', alignSelf:'center', marginTop:'1rem' }} onClick={handleAddQuestion}>
-                ➕ Thêm câu hỏi mới
+                ➕ {t('quiz.editor.add_new_question')}
               </button>
-              <div style={{ height:'4rem' }} /> {/* Spacer */}
+              <div style={{ height:'4rem' }} />
             </div>
           )}
         </div>

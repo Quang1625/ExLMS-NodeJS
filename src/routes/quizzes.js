@@ -28,6 +28,15 @@ router.get('/', async (req, res, next) => {
     } catch (err) { next(err); }
 });
 
+// GET exams (quizzes with type EXAM)
+router.get('/exams', async (req, res, next) => {
+    try {
+        const exams = await Quiz.find({ quiz_type: 'EXAM' })
+            .populate('course_id', 'title');
+        res.json(exams);
+    } catch (err) { next(err); }
+});
+
 // GET quiz by ID
 router.get('/:id', async (req, res, next) => {
     try {

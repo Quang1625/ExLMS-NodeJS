@@ -1,6 +1,8 @@
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 
 export default function QuizResult() {
+  const { t } = useTranslation()
   const { code } = useParams()
   const { state } = useLocation()
   const navigate = useNavigate()
@@ -13,7 +15,7 @@ export default function QuizResult() {
     <div className="quiz-page-bg">
       <div className="quiz-play-container glass-card" style={{ textAlign: 'center', margin: '2rem auto' }}>
         <h1 style={{ fontSize: '4rem', fontWeight: 900, marginBottom: '3rem', background: 'linear-gradient(to right, #ffd700, #fff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-            BẢNG VÀNG VINH DANH 🏆
+            {t('quiz.leaderboard_title')}
         </h1>
 
         <div className="podium" style={{ marginBottom: '4rem', display: 'flex', justifyContent: 'center', alignItems: 'flex-end', gap: '2rem' }}>
@@ -41,13 +43,13 @@ export default function QuizResult() {
         </div>
 
         <div className="leaderboard-full" style={{ background: 'rgba(0,0,0,0.2)', padding: '2rem', borderRadius: '32px', textAlign: 'left' }}>
-          <h3 style={{ marginBottom: '1.5rem', color: 'rgba(255,255,255,0.7)', textAlign: 'center' }}>BẢNG XẾP HẠNG CHI TIẾT</h3>
+          <h3 style={{ marginBottom: '1.5rem', color: 'rgba(255,255,255,0.7)', textAlign: 'center' }}>{t('quiz.detailed_leaderboard')}</h3>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '1.2rem' }}>
             <thead>
               <tr style={{ borderBottom: '2px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.5)' }}>
-                <th style={{ padding: '1rem' }}>HẠNG</th>
-                <th style={{ padding: '1rem', textAlign: 'left' }}>NGƯỜI CHƠI</th>
-                <th style={{ padding: '1rem', textAlign: 'right' }}>ĐIỂM SỐ</th>
+                <th style={{ padding: '1rem' }}>{t('quiz.rank')}</th>
+                <th style={{ padding: '1rem', textAlign: 'left' }}>{t('quiz.participant')}</th>
+                <th style={{ padding: '1rem', textAlign: 'right' }}>{t('quiz.score')}</th>
               </tr>
             </thead>
             <tbody>
@@ -68,14 +70,14 @@ export default function QuizResult() {
             className="btn btn-secondary" 
             style={{ padding: '1.25rem 3rem', fontSize: '1.2rem', borderRadius: '100px', cursor: 'pointer' }}
           >
-            Quay lại khóa học 📚
+            {t('quiz.back_to_courses')}
           </button>
           <button 
             onClick={() => navigate('/quiz/dashboard')} 
             className="btn btn-primary" 
             style={{ padding: '1.25rem 3rem', fontSize: '1.2rem', borderRadius: '100px', cursor: 'pointer', background: 'var(--primary)', border: 'none', color: 'white' }}
           >
-            Về bảng điều khiển 📊
+            {t('quiz.back_to_dashboard')}
           </button>
         </div>
       </div>

@@ -1,51 +1,18 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import Layout from '../components/Layout'
 import CrudModal from '../components/CrudModal'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
 
-const STATUS_LABEL = { PUBLISHED: 'Đang mở', DRAFT: 'Nháp', ENDED: 'Kết thúc', ARCHIVED: 'Lưu trữ' }
-const STATUS_CLASS = { PUBLISHED: 'tag--success', DRAFT: 'tag--warning', ENDED: 'tag--danger', ARCHIVED: '' }
 const ICONS = ['📘', '📗', '📙', '📕', '📓', '📒']
-const QUIZ_FIELDS = [
-  { name: 'title',             label: 'Tiêu đề Quiz',   type: 'text',     required: true, placeholder: 'Nhập tên câu đố' },
-  { name: 'description',       label: 'Mô tả',          type: 'textarea', placeholder: 'Mô tả chi tiết...' },
-  { name: 'time_limit_sec',    label: 'Thời gian (giây)', type: 'number',   placeholder: 'VD: 600 (10 phút)', min: 0 },
-  { name: 'max_attempts',      label: 'Số lần làm bài',  type: 'number',   default: 1, min: 1 },
-  { name: 'passing_score',     label: 'Điểm đạt (%)',   type: 'number',   default: 70, min: 0, max: 100 },
-  { name: 'shuffle_questions', label: 'Xáo trộn câu hỏi', type: 'checkbox', placeholder: 'Ngẫu nhiên thứ tự câu hỏi' },
-  { name: 'result_visibility', label: 'Hiển thị kết quả', type: 'select',   required: true,
-    options: [
-      { value: 'IMMEDIATE',      label: 'Ngay lập tức' },
-      { value: 'AFTER_DEADLINE', label: 'Sau khi kết thúc' },
-      { value: 'MANUAL',         label: 'Thủ công' }
-    ], default: 'IMMEDIATE' }
-]
-
-const COURSE_FIELDS = (groups = []) => [
-  { name: 'group_id',              label: 'Nhóm học',    type: 'select',  required: true,
-    options: groups.map(g => ({ value: g._id, label: g.name })) },
-  { name: 'title',                 label: 'Tiêu đề',     type: 'text',    required: true, placeholder: 'Tên khóa học' },
-  { name: 'description',           label: 'Mô tả',        type: 'textarea', placeholder: 'Mô tả chi tiết...' },
-  { name: 'status',                label: 'Trạng thái',  type: 'select',  required: true,
-    options: [
-      { value: 'DRAFT',     label: 'Nháp' },
-      { value: 'PUBLISHED', label: 'Đang mở' },
-      { value: 'ENDED',     label: 'Kết thúc' }
-    ], default: 'DRAFT' },
-  { name: 'start_date',            label: 'Ngày bắt đầu', type: 'date' },
-  { name: 'end_date',              label: 'Ngày kết thúc', type: 'date' },
-  { name: 'start_time',            label: 'Giờ học', type: 'time' },
-  { name: 'end_time',              label: 'Giờ kết thúc', type: 'time' },
-  { name: 'total_sessions',        label: 'Số buổi học', type: 'number', min: 1, placeholder: 'VD: 12' },
-  { name: 'schedule_days',         label: 'Lịch học (Thứ)', type: 'text', placeholder: 'VD: Thứ 2, Thứ 4' },
-  { name: 'completion_threshold',  label: 'Ngưỡng hoàn thành (%)', type: 'number', min: 0, max: 100, placeholder: '80', default: 80 },
-  { name: 'has_certificate',       label: 'Cấp chứng chỉ', type: 'checkbox', placeholder: 'Cấp chứng chỉ khi hoàn thành' }
-]
 
 export default function Courses() {
+  const { t } = useTranslation()
   const { user } = useAuth()
+  const navigate = useNavigate()
+  
   const isAdmin   = user?.role === 'ADMIN'
   const canManage = user?.role === 'ADMIN' || user?.role === 'INSTRUCTOR'
 
@@ -56,7 +23,51 @@ export default function Courses() {
   const [modal,    setModal]    = useState(null)
   const [quizModal, setQuizModal] = useState(null)
   const [deleting, setDeleting] = useState(null)
-  const navigate = useNavigate()
+
+  const STATUS_LABEL = useMemo(() => ({
+    PUBLISHED: t('status.PUBLISHED'),
+    DRAFT: t('status.DRAFT'),
+    ENDED: t('status.ENDED'),
+    ARCHIVED: t('status.ARCHIVED')
+  }), [t])
+
+  const STATUS_CLASS = { PUBLISHED: 'tag--success', DRAFT: 'tag--warning', ENDED: 'tag--danger', ARCHIVED: '' }
+
+  const QUIZ_FIELDS = useMemo(() => [
+    { name: 'title',             label: t('quiz.form.title'),   type: 'text',     required: true, placeholder: t('quiz.form.title') },
+    { name: 'description',       label: t('quiz.form.desc'),    type: 'textarea', placeholder: t('quiz.form.desc') },
+    { name: 'time_limit_sec',    label: t('quiz.form.time_limit'), type: 'number',   placeholder: 'VD: 600', min: 0 },
+    { name: 'max_attempts',      label: t('quiz.form.attempts'),  type: 'number',   default: 1, min: 1 },
+    { name: 'passing_score',     label: t('quiz.form.pass_score'),   type: 'number',   default: 70, min: 0, max: 100 },
+    { name: 'shuffle_questions', label: t('quiz.form.shuffle'), type: 'checkbox' },
+    { name: 'result_visibility', label: t('quiz.form.visibility'), type: 'select',   required: true,
+      options: [
+        { value: 'IMMEDIATE',      label: t('quiz.form.vis_options.IMMEDIATE') },
+        { value: 'AFTER_DEADLINE', label: t('quiz.form.vis_options.AFTER_DEADLINE') },
+        { value: 'MANUAL',         label: t('quiz.form.vis_options.MANUAL') }
+      ], default: 'IMMEDIATE' }
+  ], [t])
+
+  const COURSE_FIELDS = useMemo(() => [
+    { name: 'group_id',              label: t('courses.form.group_label'),    type: 'select',  required: true,
+      options: groups.map(g => ({ value: g._id, label: g.name })) },
+    { name: 'title',                 label: t('courses.form.title_label'),     type: 'text',    required: true, placeholder: t('courses.form.title_label') },
+    { name: 'description',           label: t('courses.form.desc_label'),        type: 'textarea', placeholder: t('courses.form.desc_label') },
+    { name: 'status',                label: t('courses.form.status_label'),  type: 'select',  required: true,
+      options: [
+        { value: 'DRAFT',     label: t('status.DRAFT') },
+        { value: 'PUBLISHED', label: t('status.PUBLISHED') },
+        { value: 'ENDED',     label: t('status.ENDED') }
+      ], default: 'DRAFT' },
+    { name: 'start_date',            label: t('courses.form.start_date'), type: 'date' },
+    { name: 'end_date',              label: t('courses.form.end_date'), type: 'date' },
+    { name: 'start_time',            label: t('courses.form.start_time'), type: 'time' },
+    { name: 'end_time',              label: t('courses.form.end_time'), type: 'time' },
+    { name: 'total_sessions',        label: t('courses.form.total_sessions'), type: 'number', min: 1, placeholder: 'VD: 12' },
+    { name: 'schedule_days',         label: t('courses.form.schedule_days'), type: 'text', placeholder: 'VD: Thứ 2, Thứ 4' },
+    { name: 'completion_threshold',  label: t('courses.form.threshold'), type: 'number', min: 0, max: 100, placeholder: '80', default: 80 },
+    { name: 'has_certificate',       label: t('courses.form.certificate'), type: 'checkbox' }
+  ], [t, groups])
 
   const fetchCourses = useCallback(() => {
     setLoading(true)
@@ -87,13 +98,13 @@ export default function Courses() {
 
   const handleDelete = async (e, id) => {
     e.stopPropagation()
-    if (!window.confirm('Bạn có chắc muốn lưu trữ (xóa) khóa học này?')) return
+    if (!window.confirm(t('courses.delete_confirm'))) return
     setDeleting(id)
     try {
       await api.delete(`/courses/${id}`)
       fetchCourses()
     } catch (err) {
-      alert(err?.response?.data?.error || 'Xóa thất bại')
+      alert(err?.response?.data?.error || t('courses.delete_fail'))
     } finally {
       setDeleting(null)
     }
@@ -117,29 +128,27 @@ export default function Courses() {
   const handleQuizSubmit = async (form) => {
     await api.post('/quizzes', { ...form, course_id: quizModal._id })
     setQuizModal(null)
-    alert('Tạo Quiz thành công!')
+    alert(t('quiz.create_success'))
   }
 
-  
   const getCourseAccess = (c) => {
-    if (canManage) return { canAccess: true, label: 'Vào học →', onClick: () => navigate(`/courses/${c._id}`) }
+    if (canManage) return { canAccess: true, label: t('courses.access.enter'), onClick: () => navigate(`/courses/${c._id}`) }
     
-   
     const group = c.group_id
-    if (!group) return { canAccess: false, label: '🔒 Khóa học chưa Gán nhóm' }
+    if (!group) return { canAccess: false, label: t('courses.access.no_group') }
 
     if (group.members) {
       const isMember = group.members.some(m => 
         (m.user_id === user._id || m.user_id?._id === user._id) && m.status === 'ACTIVE'
       )
       if (isMember) {
-        return { canAccess: true, label: 'Vào học →', onClick: () => navigate(`/courses/${c._id}`) }
+        return { canAccess: true, label: t('courses.access.enter'), onClick: () => navigate(`/courses/${c._id}`) }
       }
     }
     
     return { 
       canAccess: false, 
-      label: '🔒 Yêu cầu thành viên nhóm', 
+      label: t('courses.access.require_member'), 
       onClick: (e) => { e.stopPropagation(); navigate(`/groups/${group._id || group}`) }
     }
   }
@@ -149,33 +158,36 @@ export default function Courses() {
       <div className="page-header">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
-            <h1>Khóa học 📚</h1>
-            <p>Tổng cộng {courses.length} khóa học</p>
+            <h1>{t('courses.title')} 📚</h1>
+            <p>{t('courses.total', { count: courses.length })}</p>
           </div>
 
-          {/* ⚠️ Tạo khóa học: CHỈ ADMIN */}
           {isAdmin && (
             <button className="btn btn-primary" onClick={() => setModal('create')}>
-              ➕ Tạo khóa học
+              ➕ {t('courses.add_course')}
             </button>
           )}
         </div>
       </div>
 
-      {/* ADMIN-only notice for instructors */}
       {canManage && !isAdmin && (
         <div style={{
           background: 'rgba(245,158,11,0.1)', border: '1px solid var(--warning)',
           borderRadius: 8, padding: '0.6rem 1rem', marginBottom: '1rem',
           fontSize: '0.8125rem', color: 'var(--warning)', display: 'flex', alignItems: 'center', gap: 6
         }}>
-          🔒 Chỉ Admin mới có quyền tạo khóa học mới. Bạn có thể chỉnh sửa và xóa.
+          🔒 {t('courses.admin_only_create')}
         </div>
       )}
 
       {/* Filter tabs */}
       <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
-        {[['all', 'Tất cả'], ['PUBLISHED', 'Đang mở'], ['DRAFT', 'Nháp'], ['ENDED', 'Kết thúc']].map(([val, label]) => (
+        {[
+          ['all', t('common.all') || 'All'], 
+          ['PUBLISHED', t('status.PUBLISHED')], 
+          ['DRAFT', t('status.DRAFT')], 
+          ['ENDED', t('status.ENDED')]
+        ].map(([val, label]) => (
           <button key={val}
             className={`btn btn-sm ${filter === val ? 'btn-primary' : 'btn-secondary'}`}
             onClick={() => setFilter(val)}>{label}</button>
@@ -186,8 +198,7 @@ export default function Courses() {
       : filtered.length === 0 ? (
         <div className="empty-state">
           <div className="empty-state__icon">📭</div>
-          <h3>Không có khóa học nào</h3>
-          <p>Chưa có khóa học phù hợp với bộ lọc này.</p>
+          <h3>{t('courses.no_courses')}</h3>
         </div>
       ) : (
         <div className="grid-auto">
@@ -208,19 +219,17 @@ export default function Courses() {
                     <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
                       <button
                         className="btn btn-secondary btn-sm"
-                        title="Tạo Quiz"
+                        title={t('quiz.create_title', { title: '' })}
                         onClick={e => { e.stopPropagation(); setQuizModal(c) }}
                         style={{ padding: '2px 7px', fontSize: '0.8rem', background: 'var(--primary-2)', color: '#fff' }}
                       >➕Q</button>
                       <button
                         className="btn btn-secondary btn-sm"
-                        title="Sửa"
                         onClick={e => { e.stopPropagation(); setModal(c) }}
                         style={{ padding: '2px 7px', fontSize: '0.8rem' }}
                       >✏️</button>
                       <button
                         className="btn btn-sm"
-                        title="Lưu trữ"
                         style={{ background: 'var(--danger)', color: '#fff', padding: '2px 7px', fontSize: '0.8rem' }}
                         onClick={e => handleDelete(e, c._id)}
                         disabled={deleting === c._id}
@@ -230,9 +239,9 @@ export default function Courses() {
                 </div>
 
                 <div className="course-card__meta">
-                  <span>👤 {c.created_by?.full_name || 'Giảng viên'}</span>
-                  <span>📁 {c.group_id?.name || 'Nhóm'}</span>
-                  {c.total_sessions ? <span>📖 {c.total_sessions} buổi</span> : <span>📖 {c.chapters?.length || 0} chương</span>}
+                  <span>👤 {c.created_by?.full_name || t('courses.instructor')}</span>
+                  <span>📁 {c.group_id?.name || t('courses.group')}</span>
+                  {c.total_sessions ? <span>📖 {t('courses.sessions', { count: c.total_sessions })}</span> : <span>📖 {t('courses.chapters', { count: c.chapters?.length || 0 })}</span>}
                   {(c.schedule_days || c.start_time) && <span>📅 {c.schedule_days || ''} {c.start_time && c.end_time ? `(${c.start_time} - ${c.end_time})` : c.start_time ? `(${c.start_time})` : ''}</span>}
                 </div>
 
@@ -261,14 +270,14 @@ export default function Courses() {
       {/* Role badge */}
       {user && (
         <div style={{ textAlign: 'right', marginTop: '1rem', fontSize: '0.75rem', color: 'var(--text-3)' }}>
-          Đang đăng nhập: <strong>{user.full_name}</strong> · Vai trò: <strong>{user.role}</strong>
+          {t('courses.logged_in_as', { name: user.full_name, role: t(`sidebar.roles.${user.role}`) })}
         </div>
       )}
 
       {modal && (
         <CrudModal
-          title={modal === 'create' ? 'Tạo khóa học mới' : `Sửa: ${modal.title}`}
-          fields={COURSE_FIELDS(groups)}
+          title={modal === 'create' ? t('courses.form.create_title') : t('courses.form.edit_title', { title: modal.title })}
+          fields={COURSE_FIELDS}
           initialData={modal === 'create' ? null : editInitial(modal)}
           onSubmit={handleSubmit}
           onClose={() => setModal(null)}
@@ -276,7 +285,7 @@ export default function Courses() {
       )}
       {quizModal && (
         <CrudModal
-          title={`Tạo Quiz mới: ${quizModal.title}`}
+          title={t('quiz.create_title', { title: quizModal.title })}
           fields={QUIZ_FIELDS}
           initialData={null}
           onSubmit={handleQuizSubmit}

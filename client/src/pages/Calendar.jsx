@@ -1,172 +1,247 @@
-import { useEffect, useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import Layout from '../components/Layout'
-import { useAuth } from '../context/AuthContext'
 import api from '../api/axios'
 
-const DAYS = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']
-const MONTHS = ['Tháng 1','Tháng 2','Tháng 3','Tháng 4','Tháng 5','Tháng 6','Tháng 7','Tháng 8','Tháng 9','Tháng 10','Tháng 11','Tháng 12']
-const EVENT_COLORS = { MEETING:'#6c63ff', ASSIGNMENT_DUE:'#ef4444', QUIZ:'#f59e0b', COURSE_START:'#22c55e', COURSE_END:'#94a3b8', COURSE_SESSION:'#10b981', PERSONAL:'#00d4ff', SYSTEM:'#a855f7' }
+const EVENT_COLORS = {
+  COURSE_SESSION: { bg: 'rgba(108,99,255,0.18)', border: '#6c63ff', dot: '#6c63ff' },
+  ASSIGNMENT_DUE: { bg: 'rgba(245,158,11,0.18)', border: '#f59e0b', dot: '#f59e0b' },
+  MEETING:        { bg: 'rgba(0,212,255,0.18)',   border: '#00d4ff', dot: '#00d4ff' },
+  QUIZ:           { bg: 'rgba(239,68,68,0.18)',   border: '#ef4444', dot: '#ef4444' },
+  COURSE_START:   { bg: 'rgba(34,197,94,0.18)',   border: '#22c55e', dot: '#22c55e' },
+  COURSE_END:     { bg: 'rgba(239,68,68,0.18)',   border: '#ef4444', dot: '#ef4444' },
+  PERSONAL:       { bg: 'rgba(139,133,255,0.18)', border: '#8b85ff', dot: '#8b85ff' },
+  SYSTEM:         { bg: 'rgba(148,163,184,0.18)', border: '#94a3b8', dot: '#94a3b8' },
+}
+
+const getDetailLink = (event) => {
+  const src = event.source
+  if (!src?.entity_id) return null
+  switch (src.entity_type) {
+    case 'COURSE':     return `/courses/${src.entity_id}`
+    case 'ASSIGNMENT': return `/assignments/${src.entity_id}`
+    case 'QUIZ':       return `/quiz/dashboard`
+    case 'MEETING':    return `/meetings/${src.entity_id}`
+    default:           return null
+  }
+}
 
 export default function Calendar() {
-  const { user } = useAuth()
+  const { t, i18n } = useTranslation()
+  const navigate = useNavigate()
+  const [currentDate, setCurrentDate] = useState(new Date())
   const [events, setEvents] = useState([])
-  const [date, setDate] = useState(new Date())
-  const [selectedEvent, setSelectedEvent] = useState(null)
+  const [loading, setLoading] = useState(true)
   const [selectedDay, setSelectedDay] = useState(null)
 
-  const year = date.getFullYear()
-  const month = date.getMonth()
-  const firstDay = new Date(year, month, 1).getDay()
-  const daysInMonth = new Date(year, month + 1, 0).getDate()
-  const daysInPrev = new Date(year, month, 0).getDate()
+  const year = currentDate.getFullYear()
+  const month = currentDate.getMonth()
 
   useEffect(() => {
-    const start = new Date(year, month, 1).toISOString()
-    const end = new Date(year, month + 1, 0).toISOString()
-    if (user?._id)
-      api.get(`/calendar-events?user_id=${user._id}&start_date=${start}&end_date=${end}`)
-        .then(r => setEvents(r.data))
-        .catch(console.error)
-  }, [year, month, user])
+    const fetchEvents = async () => {
+      setLoading(true)
+      try {
+        const start_date = new Date(year, month, 1).toISOString()
+        const end_date = new Date(year, month + 1, 0, 23, 59, 59).toISOString()
+        const { data } = await api.get('/calendar-events', { params: { start_date, end_date } })
+        setEvents(Array.isArray(data) ? data : [])
+      } catch (err) {
+        console.error('Error fetching calendar events:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchEvents()
+  }, [year, month])
 
-  const eventsOn = (d) => events.filter(e => {
-    const ed = new Date(e.start_at)
-    return ed.getFullYear() === year && ed.getMonth() === month && ed.getDate() === d
-  })
+  const daysInMonth = (y, m) => new Date(y, m + 1, 0).getDate()
+  const startDayOfMonth = (y, m) => new Date(y, m, 1).getDay()
 
-  const today = new Date()
-  const isToday = (d) => today.getFullYear() === year && today.getMonth() === month && today.getDate() === d
+  const prevMonth = () => setCurrentDate(new Date(year, month - 1))
+  const nextMonth = () => setCurrentDate(new Date(year, month + 1))
+  const goToday = () => setCurrentDate(new Date())
 
-  const cells = []
-  // prev month days
-  for (let i = firstDay - 1; i >= 0; i--) cells.push({ day: daysInPrev - i, type: 'prev' })
-  // current month
-  for (let d = 1; d <= daysInMonth; d++) cells.push({ day: d, type: 'cur' })
-  // next month
-  const remaining = 42 - cells.length
-  for (let d = 1; d <= remaining; d++) cells.push({ day: d, type: 'next' })
+  const calendarDays = []
+  const totalDays = daysInMonth(year, month)
+  const startDay = startDayOfMonth(year, month)
 
-  // Simple modal style inline or using existing ones
-  const renderEventDetails = (e) => (
-    <div className="card" style={{ marginBottom: '1rem', borderLeft: `4px solid ${EVENT_COLORS[e.event_type] || '#6c63ff'}` }}>
-      <h3 style={{ marginBottom: 4 }}>{e.title}</h3>
-      <div style={{ fontSize: '0.8rem', color: 'var(--text-2)', marginBottom: 8 }}>
-        {new Date(e.start_at).toLocaleString('vi-VN')}
-        {e.end_at ? ` - ${new Date(e.end_at).toLocaleString('vi-VN')}` : ''}
-      </div>
-      <span className="tag" style={{ background: (EVENT_COLORS[e.event_type] || '#6c63ff') + '33', color: EVENT_COLORS[e.event_type] || 'var(--primary)', marginBottom: 8 }}>
-        {e.event_type === 'COURSE_SESSION' ? 'Lịch học' : e.event_type.replace('_', ' ')}
-      </span>
-      {e.description && <p style={{ fontSize: '0.9rem', marginTop: 8 }}>{e.description}</p>}
-      {e.source?.entity_id && (
-        <a href={`/${e.source.entity_type.toLowerCase()}s/${e.source.entity_id}`} 
-           className="btn btn-primary btn-sm" 
-           style={{ marginTop: '0.75rem', display: 'inline-block' }}>
-          Xem chi tiết
-        </a>
-      )}
-    </div>
-  )
+  for (let i = 0; i < startDay; i++) calendarDays.push(null)
+  for (let i = 1; i <= totalDays; i++) {
+    const dayEvents = (events || []).filter(e => {
+      const d = new Date(e.start_at)
+      return d.getFullYear() === year && d.getMonth() === month && d.getDate() === i
+    })
+    calendarDays.push({ day: i, events: dayEvents })
+  }
+
+  const getEventLabel = (type) => t(`calendar.event_types.${type}`) || type.replace(/_/g, ' ')
+  const getColor = (type) => EVENT_COLORS[type] || EVENT_COLORS.SYSTEM
+  const isToday = (day) => day === new Date().getDate() && month === new Date().getMonth() && year === new Date().getFullYear()
+
+  const monthsList = t('calendar.months', { returnObjects: true })
+  const locale = i18n.language === 'en' ? 'en-US' : 'vi-VN'
+  const dayHeaders = i18n.language === 'en'
+    ? ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+    : ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']
+
+  const todayEventCount = (events || []).filter(e => {
+    const d = new Date(e.start_at)
+    const now = new Date()
+    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate()
+  }).length
+
+  const totalEventCount = (events || []).length
+
+  const handleViewDetail = (event) => {
+    const link = getDetailLink(event)
+    if (link) {
+      setSelectedDay(null)
+      navigate(link)
+    }
+  }
+
+  if (loading) return <Layout><div className="spinner-wrap"><div className="spinner" /></div></Layout>
 
   return (
     <Layout>
-      <div className="page-header" style={{ marginBottom: '3rem' }}>
-        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap: '2rem', flexWrap: 'wrap' }}>
-          <div>
-            <h1 style={{ fontSize: '2.5rem', fontWeight: 800, letterSpacing: '-0.02em', background: 'linear-gradient(135deg, #fff 0%, var(--text-2) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              Lịch biểu 📅
-            </h1>
-            <p style={{ fontSize: '1.1rem', marginTop: '0.5rem', color: 'var(--primary-2)', fontWeight: 600 }}>
-              {MONTHS[month]} {year}
-            </p>
+      <div className="page fade-in">
+        {/* Header */}
+        <div className="cal-header">
+          <div className="cal-header__left">
+            <h1 className="cal-title">{t('calendar.title')}</h1>
+            <p className="cal-subtitle">{monthsList[month]} {year}</p>
           </div>
-          <div style={{ display:'flex', gap:'0.75rem', alignItems:'center', background: 'var(--bg-2)', padding: '6px', borderRadius: '16px', border: '1px solid var(--border)' }}>
-            <button className="btn btn-secondary btn-sm" style={{ borderRadius: '12px', border: 'none' }} onClick={() => setDate(new Date(year, month - 1, 1))}>
-              <span style={{ fontSize: '1.2rem' }}>‹</span>
-            </button>
-            <button className="btn btn-primary btn-sm" style={{ borderRadius: '12px', padding: '6px 16px' }} onClick={() => setDate(new Date())}>Hôm nay</button>
-            <button className="btn btn-secondary btn-sm" style={{ borderRadius: '12px', border: 'none' }} onClick={() => setDate(new Date(year, month + 1, 1))}>
-              <span style={{ fontSize: '1.2rem' }}>›</span>
-            </button>
+          <div className="cal-header__right">
+            <div className="cal-stats">
+              <div className="cal-stat">
+                <span className="cal-stat__num">{totalEventCount}</span>
+                <span className="cal-stat__label">{t('calendar.total_events')}</span>
+              </div>
+              <div className="cal-stat">
+                <span className="cal-stat__num" style={{ color: 'var(--success)' }}>{todayEventCount}</span>
+                <span className="cal-stat__label">{t('calendar.today_events')}</span>
+              </div>
+            </div>
+            <div className="cal-nav">
+              <button className="cal-nav__btn" onClick={prevMonth}>‹</button>
+              <button className="cal-nav__today" onClick={goToday}>{t('calendar.today')}</button>
+              <button className="cal-nav__btn" onClick={nextMonth}>›</button>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Legend */}
-      <div className="calendar-legend">
-        {Object.entries(EVENT_COLORS).map(([type, color]) => (
-          <div key={type} className="calendar-legend__item">
-            <div className="calendar-legend__dot" style={{ background: color, boxShadow: `0 0 10px ${color}44` }} />
-            {type === 'COURSE_SESSION' ? 'Lịch học' : type.replace('_', ' ')}
-          </div>
-        ))}
-      </div>
+        {/* Legend */}
+        <div className="cal-legend">
+          {Object.entries(EVENT_COLORS).slice(0, 4).map(([type, color]) => (
+            <div key={type} className="cal-legend__item">
+              <span className="cal-legend__dot" style={{ background: color.dot }} />
+              <span>{getEventLabel(type)}</span>
+            </div>
+          ))}
+        </div>
 
-      <div className="calendar-grid fade-in">
-        {DAYS.map(d => <div key={d} className="calendar-day-header">{d}</div>)}
-        {cells.map((cell, i) => {
-          const evs = cell.type === 'cur' ? eventsOn(cell.day) : []
-          return (
-            <div key={i} 
-                 className={`calendar-cell ${cell.type !== 'cur' ? 'calendar-cell--other-month' : ''} ${isToday(cell.day) && cell.type === 'cur' ? 'calendar-cell--today' : ''}`}
-                 onClick={() => {
-                   if (cell.type === 'cur' && evs.length > 0) setSelectedDay({ day: cell.day, month, year, events: evs })
-                 }}
-                 style={{ cursor: cell.type === 'cur' && evs.length > 0 ? 'pointer' : 'default' }}>
-              <div className="calendar-cell__num" style={{ color: isToday(cell.day) && cell.type === 'cur' ? 'var(--primary-2)' : undefined }}>
-                {cell.day}
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                {evs.slice(0, 3).map(e => (
-                  <div key={e._id} className="calendar-event" title={e.title}
-                    onClick={(event) => { event.stopPropagation(); setSelectedEvent(e); }}
-                    style={{ background: (EVENT_COLORS[e.event_type] || '#6c63ff') + '22', color: EVENT_COLORS[e.event_type] || 'var(--primary-2)', borderLeft: `3px solid ${EVENT_COLORS[e.event_type]}` }}>
-                    {e.title}
-                  </div>
-                ))}
-                {evs.length > 3 && (
-                  <div style={{ fontSize:'0.7rem', color:'var(--text-3)', fontWeight: 600, paddingLeft: '4px' }}>
-                    + {evs.length - 3} sự kiện khác
-                  </div>
+        {/* Calendar Grid */}
+        <div className="cal-grid-wrap">
+          <div className="cal-grid">
+            {dayHeaders.map(d => (
+              <div key={d} className="cal-grid__header">{d}</div>
+            ))}
+            {calendarDays.map((d, i) => (
+              <div
+                key={i}
+                className={`cal-cell ${!d ? 'cal-cell--empty' : ''} ${d && isToday(d.day) ? 'cal-cell--today' : ''} ${d?.events?.length ? 'cal-cell--has-events' : ''}`}
+                onClick={() => d && setSelectedDay({ ...d, month, year })}
+              >
+                {d && (
+                  <>
+                    <span className={`cal-cell__num ${isToday(d.day) ? 'cal-cell__num--today' : ''}`}>{d.day}</span>
+                    <div className="cal-cell__events">
+                      {d.events.slice(0, 2).map((e, idx) => (
+                        <div key={idx} className="cal-cell__event" style={{ background: getColor(e.event_type).bg, borderLeft: `3px solid ${getColor(e.event_type).border}` }}>
+                          {e.title?.replace(/^(Buổi học|Hạn nộp|Lịch họp):\s*/i, '').substring(0, 18)}
+                        </div>
+                      ))}
+                      {d.events.length > 2 && (
+                        <div className="cal-cell__more">+{d.events.length - 2}</div>
+                      )}
+                    </div>
+                    {d.events.length > 0 && (
+                      <div className="cal-cell__dots">
+                        {d.events.slice(0, 4).map((e, idx) => (
+                          <span key={idx} className="cal-cell__dot" style={{ background: getColor(e.event_type).dot }} />
+                        ))}
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
-            </div>
-          )
-        })}
-      </div>
-
-      {/* Event Details Modal */}
-      {selectedEvent && (
-        <div className="modal-overlay" onClick={() => setSelectedEvent(null)}>
-          <div className="modal-content fade-in" onClick={e => e.stopPropagation()}>
-            <button className="modal-close" onClick={() => setSelectedEvent(null)}>×</button>
-            <h2 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: '2rem', color: '#fff' }}>Chi tiết lịch trình</h2>
-            {renderEventDetails(selectedEvent)}
-            <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'flex-end' }}>
-              <button className="btn btn-secondary" onClick={() => setSelectedEvent(null)}>Đóng</button>
-            </div>
+            ))}
           </div>
         </div>
-      )}
 
-      {/* Day Events Modal */}
-      {selectedDay && !selectedEvent && (
-        <div className="modal-overlay" onClick={() => setSelectedDay(null)}>
-          <div className="modal-content fade-in" onClick={e => e.stopPropagation()}>
-            <button className="modal-close" onClick={() => setSelectedDay(null)}>×</button>
-            <h2 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: '0.5rem', color: '#fff' }}>Lịch trình</h2>
-            <p style={{ color: 'var(--primary-2)', fontWeight: 600, marginBottom: '2.5rem' }}>Ngày {selectedDay.day} thg {selectedDay.month + 1}, {selectedDay.year}</p>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {selectedDay.events.map(e => (
-                <div key={e._id} onClick={() => setSelectedEvent(e)} style={{ cursor: 'pointer', transition: 'transform 0.2s' }} onMouseEnter={e => e.currentTarget.style.transform = 'translateX(8px)'} onMouseLeave={e => e.currentTarget.style.transform = 'translateX(0)'}>
-                  {renderEventDetails(e)}
+        {/* Day Detail Modal */}
+        {selectedDay && (
+          <div className="cal-modal-overlay" onClick={() => setSelectedDay(null)}>
+            <div className="cal-modal" onClick={e => e.stopPropagation()}>
+              <div className="cal-modal__header">
+                <div>
+                  <div className="cal-modal__day">{selectedDay.day}</div>
+                  <div className="cal-modal__month">{monthsList[selectedDay.month]} {selectedDay.year}</div>
                 </div>
-              ))}
+                <button className="cal-modal__close" onClick={() => setSelectedDay(null)}>✕</button>
+              </div>
+              <div className="cal-modal__count">
+                {selectedDay.events.length} {t('calendar.events_on_day')}
+              </div>
+              <div className="cal-modal__list">
+                {selectedDay.events.length === 0 ? (
+                  <div className="cal-modal__empty">
+                    <span style={{ fontSize: '2.5rem' }}>📅</span>
+                    <p>{t('calendar.no_events')}</p>
+                  </div>
+                ) : selectedDay.events.map((e, i) => {
+                  const color = getColor(e.event_type)
+                  const detailLink = getDetailLink(e)
+                  return (
+                    <div key={i} className="cal-modal__event" style={{ borderLeft: `4px solid ${color.border}` }}>
+                      <div className="cal-modal__event-header">
+                        <span className="cal-modal__event-type" style={{ background: color.bg, color: color.border }}>{getEventLabel(e.event_type)}</span>
+                        <span className="cal-modal__event-time">
+                          {new Date(e.start_at).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
+                          {e.end_at && ` – ${new Date(e.end_at).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}`}
+                        </span>
+                      </div>
+                      <div className="cal-modal__event-title">{e.title}</div>
+                      {e.description && <p className="cal-modal__event-desc">{e.description}</p>}
+                      
+                      {/* View Detail Button */}
+                      {detailLink && (
+                        <button
+                          className="btn btn-sm"
+                          onClick={() => handleViewDetail(e)}
+                          style={{
+                            marginTop: '0.75rem',
+                            background: color.bg,
+                            color: color.border,
+                            border: `1px solid ${color.border}30`,
+                            fontWeight: 700,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.4rem'
+                          }}
+                        >
+                          🔗 {t('calendar.view_detail')}
+                        </button>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </Layout>
   )
 }

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useLocation, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
 import { useSocket } from '../context/SocketContext'
 import api from '../api/axios'
@@ -7,6 +8,7 @@ import QuizNavbar from '../components/QuizNavbar'
 import MediaRenderer from '../components/MediaRenderer'
 
 export default function QuizPlay() {
+  const { t } = useTranslation()
   const { code } = useParams()
   const { state } = useLocation()
   const navigate = useNavigate()
@@ -50,8 +52,7 @@ export default function QuizPlay() {
     })
 
     socket.on('quiz:answer_result', ({ isCorrect }) => {
-      console.log(`- Quiz Feedback: Result is ${isCorrect ? 'CORRECT' : 'INCORRECT'}`);
-      setFeedback(isCorrect ? 'CHÍNH XÁC! ✨' : 'RẤT TIẾC! ❌')
+      setFeedback(isCorrect ? t('quiz.correct') : t('quiz.incorrect'))
     })
 
     return () => {
@@ -59,7 +60,7 @@ export default function QuizPlay() {
       socket.off('quiz:finished')
       socket.off('quiz:answer_result')
     }
-  }, [code, socket, user, navigate])
+  }, [code, socket, user, navigate, currentIndex, t])
 
   useEffect(() => {
     if (timer > 0 && !answered) {
@@ -78,10 +79,7 @@ export default function QuizPlay() {
     if (answered || !currentQuestion) return
     setAnswered(true)
 
-    // Initial neutral feedback while waiting for server validation
-    setFeedback('Đang kiểm tra... ⚡')
-
-    console.log(`- Submitting Answer: Question ${currentQuestion._id}, Answer ${answer._id}`);
+    setFeedback(t('quiz.checking'))
     
     if (socket) {
       socket.emit('quiz:submit_answer', {
@@ -93,7 +91,11 @@ export default function QuizPlay() {
     }
   }
 
-  if (!currentQuestion) return <div className="quiz-page-bg" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}><h1>Đang tải câu hỏi...</h1></div>
+  if (!currentQuestion) return (
+    <div className="quiz-page-bg" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <h1>{t('quiz.loading_question')}</h1>
+    </div>
+  )
 
   return (
     <div className="quiz-page-bg">
@@ -107,21 +109,18 @@ export default function QuizPlay() {
             <span style={{ fontSize: '2.5rem', fontWeight: 900 }}>{timer}s</span>
           </div>
           <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: '0.8rem', opacity: 0.7, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Tiến độ</div>
+            <div style={{ fontSize: '0.8rem', opacity: 0.7, textTransform: 'uppercase', letterSpacing: '0.1em' }}>{t('quiz.progress')}</div>
             <div style={{ fontSize: '1.5rem', fontWeight: 800 }}>{currentIndex + 1} / {room?.quiz_id.questions.length || 0}</div>
           </div>
         </div>
 
         <div className="question-card">
           <h1 className="question-text">{currentQuestion.content}</h1>
-
-          {/* New Robust Media Rendering */}
           <MediaRenderer 
             url={currentQuestion.media_url || currentQuestion.image_url || currentQuestion.video_url} 
             type={currentQuestion.media_type} 
             style={{ margin: '0 auto 2rem', maxWidth: currentQuestion.media_type === 'VIDEO' ? '800px' : '600px' }}
           />
-
         </div>
 
         <div className="answers-grid">
@@ -140,15 +139,15 @@ export default function QuizPlay() {
 
         {feedback && (
           <div className={`feedback-overlay ${
-            feedback.includes('CHÍNH XÁC') ? 'correct' : 
-            feedback.includes('RẤT TIẾC') ? 'incorrect' : 'submitted'
+             feedback === t('quiz.correct') ? 'correct' : 
+             feedback === t('quiz.incorrect') ? 'incorrect' : 'submitted'
           }`}>
             <div style={{ fontSize: '8rem', marginBottom: '1rem' }}>
-              {feedback.includes('CHÍNH XÁC') ? '✅' : feedback.includes('RẤT TIẾC') ? '❌' : '⚡'}
+              {feedback === t('quiz.correct') ? '✅' : feedback === t('quiz.incorrect') ? '❌' : '⚡'}
             </div>
             <h2>{feedback}</h2>
             <p style={{ fontSize: '1.5rem', opacity: 0.8, letterSpacing: '0.05em' }}>
-              {feedback.includes('Đang kiểm tra') ? 'Vui lòng chờ giây lát...' : 'Chờ câu hỏi tiếp theo...'}
+              {feedback === t('quiz.checking') ? t('quiz.please_wait') : t('quiz.waiting_next')}
             </p>
           </div>
         )}

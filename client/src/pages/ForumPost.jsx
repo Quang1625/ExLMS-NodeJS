@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import Layout from '../components/Layout'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
@@ -7,6 +8,7 @@ import LikeButton from '../components/LikeButton'
 import MediaRenderer from '../components/MediaRenderer'
 
 export default function ForumPost() {
+  const { t, i18n } = useTranslation()
   const { id } = useParams()
   const navigate = useNavigate()
   const { user } = useAuth()
@@ -60,34 +62,18 @@ export default function ForumPost() {
       setReplyContent('')
       setReplyTo(null)
     } catch (err) {
-      alert(err.response?.data?.error || 'Lỗi gửi bình luận')
-    }
-  }
-
-  const handleVote = async (targetId, targetType) => {
-    if (!user) return alert('Vui lòng đăng nhập để thực hiện')
-    try {
-      await api.post('/forum/votes', {
-        user_id: user._id,
-        target_id: targetId,
-        target_type: targetType,
-        vote_type: 'UPVOTE'
-      })
-      const res = await api.get(`/forum/posts/${id}`)
-      setData(res.data)
-    } catch (err) {
-      console.error(err)
+      alert(err.response?.data?.error || t('forum.post_view.error_comment'))
     }
   }
 
   const handleDelete = async () => {
-    if (!window.confirm('Xác nhận xoá bài này?')) return
+    if (!window.confirm(t('forum.delete_confirm'))) return
     try {
       await api.delete(`/forum/posts/${id}`)
       navigate('/forum')
     } catch (err) {
       console.error(err)
-      alert(err.response?.data?.error || 'Xoá bài thất bại')
+      alert(err.response?.data?.error || t('forum.delete_fail'))
     }
   }
 
@@ -106,7 +92,7 @@ export default function ForumPost() {
           <div style={{ flex: 1, background: depth === 0 ? 'var(--bg-3)' : 'var(--glass)', borderRadius: '20px', padding: '1.25rem', border: '1px solid var(--border)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
               <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text)' }}>{c.author_id?.full_name}</div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-3)' }}>{new Date(c.created_at || Date.now()).toLocaleDateString('vi-VN')}</div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-3)' }}>{new Date(c.created_at || Date.now()).toLocaleDateString(i18n.language === 'en' ? 'en-US' : 'vi-VN')}</div>
             </div>
             <p style={{ fontSize: '1rem', color: 'var(--text-2)', lineHeight: 1.6 }}>{c.content}</p>
             <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
@@ -116,9 +102,9 @@ export default function ForumPost() {
                 targetType="FORUM_COMMENT"
                 initialVoteType={userVotes.find(v => v.target_id === c._id)?.vote_type === 'UPVOTE' ? 'LIKE' : userVotes.find(v => v.target_id === c._id)?.vote_type}
               />
-              {c.is_accepted && <span className="tag tag--success" style={{ borderRadius: '8px', fontWeight: 600 }}>✅ Giải pháp</span>}
+              {c.is_accepted && <span className="tag tag--success" style={{ borderRadius: '8px', fontWeight: 600 }}>✅ {t('forum.post_view.solution')}</span>}
               <button className="vote-btn" style={{ fontSize: '0.85rem' }} onClick={() => setReplyTo(isReplying ? null : c._id)}>
-                {isReplying ? 'Hủy' : 'Phản hồi'}
+                {isReplying ? t('forum.post_view.cancel_reply') : t('forum.post_view.reply')}
               </button>
             </div>
 
@@ -127,13 +113,13 @@ export default function ForumPost() {
                 <textarea
                   className="form-input"
                   rows={2}
-                  placeholder="Viết phản hồi..."
+                  placeholder={t('forum.post_view.reply_placeholder')}
                   style={{ background: 'var(--bg-2)', fontSize: '0.9rem' }}
                   value={replyContent}
                   onChange={e => setReplyContent(e.target.value)}
                 />
                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
-                  <button className="btn btn-primary btn-sm" onClick={() => handleAddComment(c._id)}>Gửi</button>
+                  <button className="btn btn-primary btn-sm" onClick={() => handleAddComment(c._id)}>{t('forum.post_view.send_reply')}</button>
                 </div>
               </div>
             )}
@@ -155,16 +141,16 @@ export default function ForumPost() {
         <div className="spinner-wrap"><div className="spinner" /></div>
       ) : !post ? (
         <div className="empty-state">
-          <h3>Không tìm thấy bài viết</h3>
-          <button className="btn btn-primary" onClick={() => navigate('/forum')}>Quay về diễn đàn</button>
+          <h3>{t('forum.post_view.not_found')}</h3>
+          <button className="btn btn-primary" onClick={() => navigate('/forum')}>{t('forum.post_view.back')}</button>
         </div>
       ) : (
         <div className="fade-in">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
             <button className="btn btn-secondary btn-sm" style={{ borderRadius: '12px', padding: '6px 16px' }} onClick={() => navigate('/forum')}>
-              ← Quay lại diễn đàn
+              ← {t('forum.post_view.back')}
             </button>
-            {canDelete && <button className="btn btn-danger btn-sm" style={{ borderRadius: '12px', padding: '6px 16px' }} onClick={handleDelete}>Xóa bài</button>}
+            {canDelete && <button className="btn btn-danger btn-sm" style={{ borderRadius: '12px', padding: '6px 16px' }} onClick={handleDelete}>{t('forum.post_view.delete_post')}</button>}
           </div>
 
           <div className="card" style={{
@@ -199,7 +185,7 @@ export default function ForumPost() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                 <span style={{ fontWeight: 700, color: 'var(--text)', fontSize: '1rem' }}>{post.author_id?.full_name}</span>
                 <span style={{ fontSize: '0.85rem', color: 'var(--text-3)' }}>
-                  Đăng vào {new Date(post.created_at).toLocaleDateString('vi-VN', { day: 'numeric', month: 'long', year: 'numeric' })}
+                  {t('forum.post_view.posted_on', { date: new Date(post.created_at).toLocaleDateString(i18n.language === 'en' ? 'en-US' : 'vi-VN', { day: 'numeric', month: 'long', year: 'numeric' }) })}
                 </span>
               </div>
 
@@ -217,7 +203,7 @@ export default function ForumPost() {
 
             {post.attachments?.length > 0 && (
               <div style={{ marginTop: '2rem', paddingTop: '2rem', borderTop: '1px solid var(--border)' }}>
-                <h4 style={{ marginBottom: '1rem', fontSize: '0.9rem', color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Tệp đính kèm</h4>
+                <h4 style={{ marginBottom: '1rem', fontSize: '0.9rem', color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('forum.post_view.attachments')}</h4>
                 <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
                   {post.attachments.map(a => {
                     const isMedia = a.mime_type?.startsWith('image/') || a.mime_type?.startsWith('video/');
@@ -250,7 +236,7 @@ export default function ForumPost() {
                 targetType="FORUM_POST"
                 initialVoteType={userVotes.find(v => v.target_id === post._id)?.vote_type === 'UPVOTE' ? 'LIKE' : userVotes.find(v => v.target_id === post._id)?.vote_type}
               />
-              <button className="btn btn-secondary" style={{ borderRadius: '14px' }}>🔖 Lưu bài</button>
+              <button className="btn btn-secondary" style={{ borderRadius: '14px' }}>🔖 {t('forum.post_view.save_post')}</button>
             </div>
           </div>
 
@@ -260,7 +246,7 @@ export default function ForumPost() {
             background: 'var(--bg-2)',
             border: '1px solid var(--border)'
           }}>
-            <h3 style={{ marginBottom: '2rem', fontSize: '1.5rem', fontWeight: 700 }}>💬 {comments.length} bình luận</h3>
+            <h3 style={{ marginBottom: '2rem', fontSize: '1.5rem', fontWeight: 700 }}>💬 {t('forum.post_view.comments_title', { count: comments.length })}</h3>
 
             <div style={{
               display: 'flex',
@@ -277,10 +263,10 @@ export default function ForumPost() {
               <div style={{ flex: 1 }}>
                 <textarea className="form-input" rows={3}
                   style={{ background: 'transparent', border: 'none', padding: 0, fontSize: '1rem', resize: 'none' }}
-                  placeholder="Bạn nghĩ gì về bài viết này?"
+                  placeholder={t('forum.post_view.comment_placeholder')}
                   value={comment} onChange={e => setComment(e.target.value)} />
                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--border)' }}>
-                  <button className="btn btn-primary btn-sm" style={{ borderRadius: '10px', padding: '8px 20px' }} onClick={() => handleAddComment()}>Gửi bình luận 📤</button>
+                  <button className="btn btn-primary btn-sm" style={{ borderRadius: '10px', padding: '8px 20px' }} onClick={() => handleAddComment()}>{t('forum.post_view.send_comment')}</button>
                 </div>
               </div>
             </div>
@@ -292,7 +278,7 @@ export default function ForumPost() {
             {comments.length === 0 && (
               <div className="empty-state" style={{ padding: '3rem' }}>
                 <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🥱</div>
-                <div style={{ color: 'var(--text-3)' }}>Chưa có bình luận nào. Hãy là người đầu tiên!</div>
+                <div style={{ color: 'var(--text-3)' }}>{t('forum.post_view.no_comments')}</div>
               </div>
             )}
           </div>

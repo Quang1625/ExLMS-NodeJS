@@ -4,12 +4,15 @@ const { CourseEnrollment, Course } = require('../models/Course');
 const { Assignment } = require('../models/Assignment');
 const Meeting = require('../models/Meeting');
 const { Quiz } = require('../models/Quiz');
+const { authenticate } = require('../middleware/auth');
+
+router.use(authenticate);
 
 // GET calendar events for a user (with optional date range)
 router.get('/', async (req, res, next) => {
     try {
-        const { user_id, start_date, end_date } = req.query;
-        if (!user_id) return res.status(400).json({ error: 'user_id là bắt buộc' });
+        const user_id = req.user._id;
+        const { start_date, end_date } = req.query;
 
         const mongoose = require('mongoose');
         const objId = new mongoose.Types.ObjectId(user_id);
@@ -17,7 +20,7 @@ router.get('/', async (req, res, next) => {
         const sDate = start_date ? new Date(start_date) : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
         const eDate = end_date ? new Date(end_date) : new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0);
 
-        const filter = { user_id };
+        const filter = { user_id: objId };
         filter.start_at = { $gte: sDate, $lte: eDate };
 
         // 1. Fetch persistent events
@@ -126,7 +129,7 @@ router.get('/', async (req, res, next) => {
 // POST create personal event
 router.post('/', async (req, res, next) => {
     try {
-        const event = new CalendarEvent(req.body);
+        const event = new CalendarEvent({ ...req.body, user_id: req.user._id });
         await event.save();
         res.status(201).json(event);
     } catch (err) { next(err); }
@@ -135,7 +138,8 @@ router.post('/', async (req, res, next) => {
 // POST auto-generate events from courses, assignments, meetings
 router.post('/generate', async (req, res, next) => {
     try {
-        const { user_id, group_id } = req.body;
+        const user_id = req.user._id;
+        const { group_id } = req.body;
 
         const enrollments = await CourseEnrollment.find({ user_id });
         const courseIds = enrollments.map(e => e.course_id);

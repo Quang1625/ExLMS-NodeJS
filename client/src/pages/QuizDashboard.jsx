@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import Layout from '../components/Layout'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
 
 export default function QuizDashboard() {
+  const { t, i18n } = useTranslation()
   const { user } = useAuth()
   const navigate = useNavigate()
   const [history, setHistory] = useState([])
@@ -18,8 +20,8 @@ export default function QuizDashboard() {
           api.get('/quiz-rooms/my-history'),
           api.get('/quizzes/my-attempts')
         ])
-        setHistory(historyRes.data)
-        setAttempts(attemptsRes.data)
+        setHistory(Array.isArray(historyRes.data) ? historyRes.data : [])
+        setAttempts(Array.isArray(attemptsRes.data) ? attemptsRes.data : [])
       } catch (err) {
         console.error('Error fetching quiz data:', err)
       } finally {
@@ -30,24 +32,22 @@ export default function QuizDashboard() {
   }, [])
 
   const stats = {
-    totalSessions: history.length + attempts.length,
+    totalSessions: (history?.length || 0) + (attempts?.length || 0),
     avgScore: Math.round(
-      ([...history.flatMap(h => h.players.filter(p => p.user_id === user._id)), ...attempts]
+      ([...(history?.flatMap(h => h.players?.filter(p => p.user_id === user._id) || []) || []), ...(attempts || [])]
         .reduce((acc, curr) => acc + (curr.score || 0), 0) / 
-        (history.filter(h => h.players.some(p => p.user_id === user._id)).length + attempts.length || 1))
+        (history?.filter(h => h.players?.some(p => p.user_id === user._id)).length + (attempts?.length || 0) || 1))
     ) || 0,
-    hostedCount: history.filter(h => h.host_id._id === user._id).length
+    hostedCount: history?.filter(h => h.host_id?._id === user._id).length || 0
   }
 
   const handleExport = async (quizId) => {
     if (!quizId) {
-      alert('Quiz này đã bị xóa, không thể xuất bảng điểm.')
+      alert(t('course_detail.no_quizzes'))
       return
     }
     try {
-      console.log('📊 Starting export for quiz:', quizId)
       const res = await api.get(`/quizzes/${quizId}/export-excel`, { responseType: 'blob' })
-      console.log('✅ Export response received, size:', res.data.size)
       const blob = new Blob([res.data], { type: 'text/csv; charset=utf-8' })
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
@@ -58,11 +58,7 @@ export default function QuizDashboard() {
       document.body.removeChild(link)
       window.URL.revokeObjectURL(url)
     } catch (err) {
-      console.error('❌ Export failed!')
-      console.error('Status:', err.response?.status)
-      console.error('Data:', err.response?.data)
-      console.error('Message:', err.message)
-      alert(`Lỗi khi xuất bảng điểm (${err.response?.status || 'network'}): ${err.message}`)
+      alert(`${t('common.error_fail')} (${err.response?.status || 'network'}): ${err.message}`)
     }
   }
 
@@ -74,11 +70,13 @@ export default function QuizDashboard() {
     )
   }
 
+  const locale = i18n.language === 'en' ? 'en-US' : 'vi-VN'
+
   return (
     <Layout>
       <div className="page-header">
-        <h1>Bảng điều khiển Quiz ⚡</h1>
-        <p>Theo dõi tiến độ và lịch sử tham gia Quiz của bạn</p>
+        <h1>{t('quiz.dashboard_title')}</h1>
+        <p>{t('quiz.dashboard_subtitle')}</p>
       </div>
 
       <div className="stat-grid" style={{ marginBottom: '2rem' }}>
@@ -86,14 +84,14 @@ export default function QuizDashboard() {
           <div className="stat-card__icon" style={{ background: 'rgba(108,99,255,0.1)', color: '#6c63ff' }}>📊</div>
           <div>
             <div className="stat-card__value">{stats.totalSessions}</div>
-            <div className="stat-card__label">Tổng lượt tham gia</div>
+            <div className="stat-card__label">{t('quiz.total_attempts')}</div>
           </div>
         </div>
         <div className="stat-card">
           <div className="stat-card__icon" style={{ background: 'rgba(56,239,125,0.1)', color: '#38ef7d' }}>🎯</div>
           <div>
             <div className="stat-card__value">{stats.avgScore}%</div>
-            <div className="stat-card__label">Điểm trung bình</div>
+            <div className="stat-card__label">{t('quiz.avg_score')}</div>
           </div>
         </div>
         {user.role !== 'STUDENT' && (
@@ -101,21 +99,20 @@ export default function QuizDashboard() {
             <div className="stat-card__icon" style={{ background: 'rgba(255,107,107,0.1)', color: '#ff6b67' }}>👨‍🏫</div>
             <div>
               <div className="stat-card__value">{stats.hostedCount}</div>
-              <div className="stat-card__label">Trận đã tổ chức</div>
+              <div className="stat-card__label">{t('quiz.hosted_sessions')}</div>
             </div>
           </div>
         )}
       </div>
 
       <div className="grid-2">
-        {/* Real-time Sessions */}
         <div className="card">
           <h2 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span>🕒</span> Lịch sử Quiz Real-time
+            <span>🕒</span> {t('quiz.realtime_history')}
           </h2>
           <div className="list-container">
             {history.length === 0 ? (
-              <p style={{ opacity: 0.5, textAlign: 'center', padding: '2rem' }}>Chưa có lịch sử tham gia Quiz trực tiếp nào.</p>
+              <p style={{ opacity: 0.5, textAlign: 'center', padding: '2rem' }}>{t('quiz.no_realtime_history')}</p>
             ) : history.map(room => {
               const myResult = room.players.find(p => p.user_id === user._id)
               const isHost = room.host_id._id === user._id
@@ -123,22 +120,22 @@ export default function QuizDashboard() {
               return (
                 <div key={room._id} className="list-item" style={{ padding: '1rem', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
-                    <div style={{ fontWeight: 600 }}>{room.quiz_id?.title || 'Quiz không xác định'}</div>
+                    <div style={{ fontWeight: 600 }}>{room.quiz_id?.title || t('quiz.unknown_quiz')}</div>
                     <div style={{ fontSize: '0.8rem', opacity: 0.7 }}>
-                      Mã: {room.room_code} • {new Date(room.created_at).toLocaleDateString('vi-VN')}
+                      {t('quiz.room_code')}: {room.room_code} • {new Date(room.created_at).toLocaleDateString(locale)}
                     </div>
                   </div>
                   <div style={{ textAlign: 'right' }}>
                     {isHost ? (
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem' }}>
-                        <span className="tag tag--primary" style={{ fontSize: '0.7rem' }}>CHỦ PHÒNG</span>
+                        <span className="tag tag--primary" style={{ fontSize: '0.7rem' }}>{t('quiz.host_label')}</span>
                         {room.quiz_id?._id && (
                           <button 
                             className="btn btn-sm btn-secondary" 
                             onClick={() => handleExport(room.quiz_id._id)}
                             style={{ fontSize: '0.7rem', padding: '0.3rem 0.6rem' }}
                           >
-                            📊 Xuất bảng điểm (Excel)
+                            📊 {t('quiz.export_btn')}
                           </button>
                         )}
                       </div>
@@ -146,7 +143,7 @@ export default function QuizDashboard() {
                       <div style={{ fontWeight: 800, color: 'var(--primary)' }}>{myResult?.score || 0} pts</div>
                     )}
                     <div style={{ fontSize: '0.7rem', opacity: 0.6, cursor: 'pointer', color: 'var(--primary)' }} onClick={() => navigate(`/quiz/result/${room.room_code}`, { state: { players: room.players } })}>
-                      Xem chi tiết ➡️
+                      {t('quiz.view_details')}
                     </div>
                   </div>
                 </div>
@@ -155,20 +152,19 @@ export default function QuizDashboard() {
           </div>
         </div>
 
-        {/* Quiz Attempts */}
         <div className="card">
           <h2 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span>📝</span> Kết quả bài tập Quiz
+            <span>📝</span> {t('quiz.practice_results')}
           </h2>
           <div className="list-container">
             {attempts.length === 0 ? (
-              <p style={{ opacity: 0.5, textAlign: 'center', padding: '2rem' }}>Chưa có lượt làm bài tập Quiz nào.</p>
+              <p style={{ opacity: 0.5, textAlign: 'center', padding: '2rem' }}>{t('quiz.no_practice_results')}</p>
             ) : attempts.map(attempt => (
               <div key={attempt._id} className="list-item" style={{ padding: '1rem', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <div style={{ fontWeight: 600 }}>{attempt.quiz_id?.title || 'Quiz không xác định'}</div>
+                  <div style={{ fontWeight: 600 }}>{attempt.quiz_id?.title || t('quiz.unknown_quiz')}</div>
                   <div style={{ fontSize: '0.8rem', opacity: 0.7 }}>
-                    Lần thử: {attempt.attempt_number} • {new Date(attempt.submitted_at).toLocaleDateString('vi-VN')}
+                    {t('quiz.attempt_number')}: {attempt.attempt_number} • {new Date(attempt.submitted_at).toLocaleDateString(locale)}
                   </div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
@@ -176,7 +172,7 @@ export default function QuizDashboard() {
                     {attempt.score}%
                   </div>
                   <span className={`tag ${attempt.is_passed ? 'tag--success' : 'tag--danger'}`} style={{ fontSize: '0.6rem' }}>
-                    {attempt.is_passed ? 'ĐẠT' : 'CHƯA ĐẠT'}
+                    {attempt.is_passed ? t('quiz.passed') : t('quiz.failed')}
                   </span>
                 </div>
               </div>

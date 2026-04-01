@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import Layout from '../components/Layout'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
 
 export default function ForumNew() {
+  const { t } = useTranslation()
   const { user } = useAuth()
   const navigate = useNavigate()
   const [tags, setTags] = useState([])
@@ -30,7 +32,7 @@ export default function ForumNew() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!title.trim() || !content.trim()) {
-      setError('Vui lòng nhập tiêu đề và nội dung bài viết.')
+      setError(t('forum.form.error_empty'))
       return
     }
     setError('')
@@ -50,7 +52,7 @@ export default function ForumNew() {
       navigate(`/forum/${data._id}`);
     } catch (err) {
       console.error(err)
-      setError(err.response?.data?.error || 'Không thể tạo bài viết. Vui lòng thử lại.')
+      setError(err.response?.data?.error || t('forum.form.error_fail'))
     } finally {
       setSaving(false)
     }
@@ -67,11 +69,11 @@ export default function ForumNew() {
         marginBottom: '2.5rem'
       }}>
         <div>
-          <h1 style={{ fontSize: '2.25rem', marginBottom: '0.5rem', background: 'linear-gradient(135deg, #fff, var(--text-2))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>✍️ Tạo bài viết</h1>
-          <p style={{ fontSize: '1rem', color: 'var(--text-3)' }}>Chia sẻ câu hỏi, kinh nghiệm, hoặc cập nhật cho cộng đồng.</p>
+          <h1 style={{ fontSize: '2.25rem', marginBottom: '0.5rem', background: 'linear-gradient(135deg, #fff, var(--text-2))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>✍️ {t('forum.form.title')}</h1>
+          <p style={{ fontSize: '1rem', color: 'var(--text-3)' }}>{t('forum.form.subtitle')}</p>
         </div>
         <button className="btn btn-secondary" style={{ borderRadius: '12px', padding: '10px 20px' }} onClick={() => navigate('/forum')}>
-          ← Quay về Diễn đàn
+          ← {t('forum.form.back')}
         </button>
       </div>
 
@@ -90,30 +92,30 @@ export default function ForumNew() {
           <form onSubmit={handleSubmit}>
             <div style={{ display:'flex', flexDirection:'column', gap:'1.75rem' }}>
               <div>
-                <label className="form-label" style={{ color: 'var(--text)', fontWeight: 700, fontSize: '1.1rem', marginBottom: '0.75rem' }}>Tiêu đề bài viết</label>
+                <label className="form-label" style={{ color: 'var(--text)', fontWeight: 700, fontSize: '1.1rem', marginBottom: '0.75rem' }}>{t('forum.form.field_title')}</label>
                 <input
                   className="form-input"
                   style={{ padding: '1rem', fontSize: '1.1rem', borderRadius: '16px' }}
                   value={title}
                   onChange={e => setTitle(e.target.value)}
-                  placeholder="Nhập tiêu đề thu hút sự chú ý..."
+                  placeholder={t('forum.form.field_title_placeholder')}
                 />
               </div>
 
               <div>
-                <label className="form-label" style={{ color: 'var(--text)', fontWeight: 700, fontSize: '1.1rem', marginBottom: '0.75rem' }}>Nội dung chi tiết</label>
+                <label className="form-label" style={{ color: 'var(--text)', fontWeight: 700, fontSize: '1.1rem', marginBottom: '0.75rem' }}>{t('forum.form.field_content')}</label>
                 <textarea
                   className="form-input"
                   style={{ padding: '1.25rem', fontSize: '1rem', borderRadius: '20px', lineHeight: 1.6 }}
                   rows={10}
                   value={content}
                   onChange={e => setContent(e.target.value)}
-                  placeholder="Bạn muốn chia sẻ điều gì?"
+                  placeholder={t('forum.form.field_content_placeholder')}
                 />
               </div>
 
               <div>
-                <label className="form-label" style={{ color: 'var(--text)', fontWeight: 700, fontSize: '1.1rem', marginBottom: '0.75rem' }}>Gắn thẻ (Tags)</label>
+                <label className="form-label" style={{ color: 'var(--text)', fontWeight: 700, fontSize: '1.1rem', marginBottom: '0.75rem' }}>{t('forum.form.field_tags')}</label>
                 <div style={{ 
                   display:'flex', 
                   gap:'0.75rem', 
@@ -150,7 +152,7 @@ export default function ForumNew() {
               </div>
 
               <div>
-                <label className="form-label" style={{ color: 'var(--text)', fontWeight: 700, fontSize: '1.1rem', marginBottom: '0.75rem' }}>Đính kèm tệp tin</label>
+                <label className="form-label" style={{ color: 'var(--text)', fontWeight: 700, fontSize: '1.1rem', marginBottom: '0.75rem' }}>{t('forum.form.field_attachments')}</label>
                 <div style={{ 
                   padding: '1.5rem',
                   border: '2px dashed var(--border)',
@@ -168,8 +170,8 @@ export default function ForumNew() {
                     onChange={e => setAttachments(Array.from(e.target.files))}
                   />
                   <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📁</div>
-                  <div style={{ fontWeight: 600, color: 'var(--text-2)' }}>Nhấn để tải lên hoặc kéo thả tệp vào đây</div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-3)', marginTop: '0.5rem' }}>Hỗ trợ hình ảnh, tài liệu (tối đa 8 tệp)</div>
+                  <div style={{ fontWeight: 600, color: 'var(--text-2)' }}>{t('forum.form.field_attachments_placeholder')}</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-3)', marginTop: '0.5rem' }}>{t('forum.form.field_attachments_hint')}</div>
                 </div>
                 {attachments.length > 0 && (
                   <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
@@ -186,10 +188,10 @@ export default function ForumNew() {
 
               <div style={{ display:'flex', gap:'1rem', marginTop:'1rem', paddingTop: '2rem', borderTop: '1px solid var(--border)' }}>
                 <button className="btn btn-primary" style={{ padding: '12px 32px', borderRadius: '16px', fontSize: '1rem' }} disabled={saving}>
-                  {saving ? 'Đang xử lý...' : 'Đăng bài viết 🚀'}
+                  {saving ? t('auth.register.processing') : t('forum.form.submit')}
                 </button>
                 <button className="btn btn-secondary" style={{ padding: '12px 24px', borderRadius: '16px' }} type="button" onClick={() => navigate('/forum')}>
-                  Hủy thao tác
+                  {t('forum.form.cancel')}
                 </button>
               </div>
             </div>
