@@ -371,6 +371,15 @@
     "join": "Join Group",
     "joined": "Joined",
     "pending": "Pending",
+    "form": {
+      "title_label": "Group Name",
+      "name_placeholder": "e.g. IELTS Study Group",
+      "desc_label": "Description",
+      "desc_placeholder": "Share the group goals...",
+      "category_label": "Category / Topic",
+      "category_placeholder": "e.g. Computer Science",
+      "max_members_label": "Max Members"
+    },
     "join_modal": {
       "title": "Join Group: {{name}}",
       "message_label": "Introduction Message",

@@ -371,6 +371,15 @@
     "join": "Tham gia nhóm",
     "joined": "Đã tham gia",
     "pending": "Đang chờ duyệt",
+    "form": {
+      "title_label": "Tên nhóm",
+      "name_placeholder": "VD: Nhóm ôn thi Ielts",
+      "desc_label": "Mô tả nhóm",
+      "desc_placeholder": "Chia sẻ mục tiêu của nhóm...",
+      "category_label": "Lĩnh vực / Chuyên đề",
+      "category_placeholder": "VD: Công nghệ thông tin",
+      "max_members_label": "Số lượng thành viên tối đa"
+    },
     "join_modal": {
       "title": "Tham gia nhóm: {{name}}",
       "message_label": "Lời nhắn giới thiệu",

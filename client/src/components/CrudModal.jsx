@@ -60,12 +60,13 @@ export default function CrudModal({ title, fields, initialData, onSubmit, onClos
             <div style={errorBox}>{error}</div>
           )}
 
-          {fields.map(f => (
-            <div key={f.name} style={fieldWrap}>
-              <label style={labelStyle}>
-                {f.label}
-                {f.required && <span style={{ color: 'var(--danger)', marginLeft: 2 }}>*</span>}
-              </label>
+          <div style={fieldsGrid}>
+            {fields.map(f => (
+              <div key={f.name} style={{ ...fieldWrap, gridColumn: f.grid === 'half' ? 'span 1' : 'span 2' }}>
+                <label style={labelStyle}>
+                  {f.label}
+                  {f.required && <span style={{ color: 'var(--danger)', marginLeft: 2 }}>*</span>}
+                </label>
 
               {f.type === 'select' ? (
                 <select
@@ -127,6 +128,7 @@ export default function CrudModal({ title, fields, initialData, onSubmit, onClos
               )}
             </div>
           ))}
+          </div>
 
           {/* Footer */}
           <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 8 }}>
@@ -195,9 +197,15 @@ const closeBtn = {
   borderRadius: 6
 }
 
-const body = { padding: '1.25rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '0.875rem' }
+const body = { padding: '1.25rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }
 
-const fieldWrap = { display: 'flex', flexDirection: 'column', gap: 5 }
+const fieldsGrid = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(2, 1fr)',
+  gap: '1rem'
+}
+
+const fieldWrap = { display: 'flex', flexDirection: 'column', gap: 6 }
 
 const labelStyle = { fontSize: '0.8125rem', fontWeight: 600, color: 'var(--text-2)' }
 

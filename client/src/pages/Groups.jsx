@@ -22,13 +22,13 @@ export default function Groups() {
     { name: 'name',        label: t('groups.form.title_label'),     type: 'text',     required: true, placeholder: t('groups.form.name_placeholder') },
     { name: 'description', label: t('groups.form.desc_label'),         type: 'textarea', placeholder: t('groups.form.desc_placeholder') },
     { name: 'category',    label: t('groups.form.category_label'),      type: 'text',     placeholder: t('groups.form.category_placeholder') },
-    { name: 'visibility',  label: t('common.status'),        type: 'select',   required: true,
+    { name: 'visibility',  label: t('common.status'),        type: 'select',   required: true, grid: 'half',
       options: [
         { value: 'PUBLIC', label: `🌐 ${t('groups.visibility.PUBLIC')}` }, 
         { value: 'PRIVATE', label: `🔒 ${t('groups.visibility.PRIVATE')}` }
       ],
       default: 'PUBLIC' },
-    { name: 'max_members', label: t('groups.form.max_members_label'), type: 'number', min: 2, placeholder: '50', default: 50 }
+    { name: 'max_members', label: t('groups.form.max_members_label'), type: 'number', min: 2, placeholder: '50', default: 50, grid: 'half' }
   ], [t])
 
   const fetchGroups = useCallback(() => {
