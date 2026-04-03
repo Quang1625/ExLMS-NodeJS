@@ -64,7 +64,7 @@ const uploadStudent = multer({
 
 const uploadLesson = multer({
     storage: lessonStorage,
-    limits: { fileSize: 200 * 1024 * 1024 }, // 200MB for videos
+    limits: { fileSize: 1000 * 1024 * 1024 }, // 1000MB for videos
     fileFilter: lessonFilter
 });
 

@@ -17,7 +17,7 @@ export default function QuizNavbar() {
         <button className="quiz-navbar__link" onClick={() => navigate('/quiz/dashboard')}>📊 {t('sidebar.quiz_dashboard')}</button>
       </div>
       <button className="quiz-navbar__exit quiz-navbar__link" onClick={() => navigate('/courses')} style={{ cursor: 'pointer' }}>
-        🚪 {t('sidebar.logout') || 'Exit'}
+        🚪 {t('common.exit') || 'Thoát'}
       </button>
     </nav>
   )

@@ -31,9 +31,31 @@ router.get('/', async (req, res, next) => {
     try {
         const { group_id, course_id, status } = req.query;
         const filter = {};
-        if (group_id) filter.group_id = group_id;
+        
         if (course_id) filter.course_id = course_id;
         if (status) filter.status = status;
+
+        if (req.user.role === 'STUDENT') {
+            // 1) Find all groups where student is ACTIVE
+            const myGroups = await StudyGroup.find({
+                members: { $elemMatch: { user_id: req.user._id, status: 'ACTIVE' } }
+            }).select('_id');
+            const myGroupIds = myGroups.map(g => g._id.toString());
+
+            // 2) If looking for a specific group, ensure they are in it
+            if (group_id) {
+                if (!myGroupIds.includes(group_id.toString())) {
+                    return res.json({ success: true, data: [] });
+                }
+                filter.group_id = group_id;
+            } else {
+                // Otherwise, show assignments only from their enrolled groups
+                filter.group_id = { $in: myGroupIds };
+            }
+        } else {
+            // INSTRUCTOR / ADMIN
+            if (group_id) filter.group_id = group_id;
+        }
 
         const assignments = await Assignment.find(filter)
             .populate('created_by', 'full_name email')

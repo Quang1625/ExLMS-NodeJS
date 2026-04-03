@@ -15,7 +15,8 @@
     "loading": "Đang tải...",
     "search": "Tìm kiếm",
     "error_fail": "Đã xảy ra lỗi, vui lòng thử lại.",
-    "error_title": "Lỗi hệ thống"
+    "error_title": "Lỗi hệ thống",
+    "exit": "Thoát"
   },
   "status": {
     "PUBLISHED": "Đang mở",
@@ -208,7 +209,20 @@
   },
   "calendar": {
     "title": "Lịch biểu 📅",
-    "months": ["Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6", "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"],
+    "months": [
+      "Tháng 1",
+      "Tháng 2",
+      "Tháng 3",
+      "Tháng 4",
+      "Tháng 5",
+      "Tháng 6",
+      "Tháng 7",
+      "Tháng 8",
+      "Tháng 9",
+      "Tháng 10",
+      "Tháng 11",
+      "Tháng 12"
+    ],
     "event_types": {
       "COURSE_SESSION": "Lịch học",
       "ASSIGNMENT_DUE": "Hạn nộp bài",
@@ -477,7 +491,7 @@
     "content_tab": "Nội dung & Cài đặt",
     "submissions_tab": "Bài nộp ({{count}}/{{total}})",
     "assignment_content": "Nội dung bài tập",
-"score_achieved": "Điểm số đạt được",
+    "score_achieved": "Điểm số đạt được",
     "instructor_feedback": "PHẢN HỒI TỪ GIẢNG VIÊN:",
     "update_submission": "Cập nhật bài làm",
     "new_submission": "Nộp bài làm mới",

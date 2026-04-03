@@ -1,6 +1,7 @@
 const ExcelJS = require('exceljs');
 const router = require('express').Router();
 const { Quiz, QuizAttempt } = require('../models/Quiz');
+const { CourseEnrollment } = require('../models/Course');
 const { authenticate } = require('../middleware/auth');
 
 router.use(authenticate);
@@ -20,9 +21,26 @@ router.get('/', async (req, res, next) => {
     try {
         const { course_id, chapter_id, quiz_type } = req.query;
         const filter = {};
-        if (course_id) filter.course_id = course_id;
+        
         if (chapter_id) filter.chapter_id = chapter_id;
         if (quiz_type) filter.quiz_type = quiz_type;
+
+        if (req.user.role === 'STUDENT') {
+            const enrollments = await CourseEnrollment.find({ user_id: req.user._id }).select('course_id');
+            const myCourseIds = enrollments.map(e => e.course_id.toString());
+            
+            if (course_id) {
+                if (!myCourseIds.includes(course_id.toString())) {
+                    return res.json([]);
+                }
+                filter.course_id = course_id;
+            } else {
+                filter.course_id = { $in: myCourseIds };
+            }
+        } else {
+            if (course_id) filter.course_id = course_id;
+        }
+
         const quizzes = await Quiz.find(filter);
         res.json(quizzes);
     } catch (err) { next(err); }
@@ -31,7 +49,15 @@ router.get('/', async (req, res, next) => {
 // GET exams (quizzes with type EXAM)
 router.get('/exams', async (req, res, next) => {
     try {
-        const exams = await Quiz.find({ quiz_type: 'EXAM' })
+        const filter = { quiz_type: 'EXAM' };
+        
+        if (req.user.role === 'STUDENT') {
+            const enrollments = await CourseEnrollment.find({ user_id: req.user._id }).select('course_id');
+            const myCourseIds = enrollments.map(e => e.course_id.toString());
+            filter.course_id = { $in: myCourseIds };
+        }
+
+        const exams = await Quiz.find(filter)
             .populate('course_id', 'title');
         res.json(exams);
     } catch (err) { next(err); }

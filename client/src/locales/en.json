@@ -15,7 +15,8 @@
     "loading": "Loading...",
     "search": "Search",
     "error_fail": "An error occurred, please try again.",
-    "error_title": "System Error"
+    "error_title": "System Error",
+    "exit": "Exit"
   },
   "status": {
     "PUBLISHED": "Published",
@@ -208,7 +209,20 @@
   },
   "calendar": {
     "title": "Calendar 📅",
-    "months": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+    "months": [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December"
+    ],
     "event_types": {
       "COURSE_SESSION": "Course Session",
       "ASSIGNMENT_DUE": "Assignment Due",
