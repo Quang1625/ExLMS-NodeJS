@@ -7,6 +7,7 @@ import QuizQuestionEditor from '../components/QuizQuestionEditor'
 import api from '../api/axios'
 import MediaRenderer from '../components/MediaRenderer'
 import { useAuth } from '../context/AuthContext'
+import { showError } from '../utils/errors'
 
 const buildUploadUrl = (resourceKey) => {
   if (!resourceKey) return '#'
@@ -138,7 +139,9 @@ export default function CourseDetail() {
       setQuizzes(qRes.data)
       setQuizModal(null)
       setEditingQuizQuestions(null)
-    } catch (err) { alert(t('common.error_fail')) }
+    } catch (err) {
+      showError(t, err)
+    }
   }
 
   const handleChapterSubmit = async (form) => {
@@ -150,7 +153,9 @@ export default function CourseDetail() {
       }
       await fetchCourse()
       setChapterModal(null)
-    } catch (err) { alert(t('common.error_fail')) }
+    } catch (err) {
+      showError(t, err)
+    }
   }
 
   const handleLessonSubmit = async (form) => {
@@ -166,12 +171,18 @@ export default function CourseDetail() {
         finalForm.resource_key = uploadRes.data.data.resource_key
         delete finalForm.file
       }
+
       if (mode === 'create') {
         await api.post(`/courses/${id}/chapters/${chapterId}/lessons`, finalForm)
+      } else if (lesson?._id) {
+        await api.put(`/courses/${id}/chapters/${chapterId}/lessons/${lesson._id}`, finalForm)
       }
+
       await fetchCourse()
       setLessonModal(null)
-    } catch (err) { alert(t('common.error_fail')) }
+    } catch (err) {
+      showError(t, err)
+    }
   }
 
   const handleDeleteChapter = async (chapterId) => {
@@ -179,7 +190,9 @@ export default function CourseDetail() {
     try {
       await api.delete(`/courses/${id}/chapters/${chapterId}`)
       await fetchCourse()
-    } catch (err) { alert(t('common.error_fail')) }
+    } catch (err) {
+      showError(t, err)
+    }
   }
 
   const handleExport = async (quizId) => {
@@ -281,6 +294,15 @@ export default function CourseDetail() {
                       }}>
                       <span>{contentTypeIcon[ls.content_type] || '📄'}</span>
                       <span style={{ flex:1 }}>{ls.title}</span>
+                      {canManage && (
+                        <button 
+                          className="btn btn-secondary btn-sm" 
+                          style={{ padding: '2px 6px', fontSize: '0.75rem' }} 
+                          onClick={(e) => { e.stopPropagation(); setLessonModal({ mode: 'edit', chapterId: ch._id, lesson: ls }) }}
+                        >
+                          ✏️
+                        </button>
+                      )}
                     </div>
                   ))}
                   {canManage && (

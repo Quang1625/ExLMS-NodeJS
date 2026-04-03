@@ -1,4 +1,6 @@
 {
+  "common.error_fail": "Đã xảy ra lỗi, vui lòng thử lại.",
+  "common.error_title": "Lỗi hệ thống",
   "common": {
     "search_placeholder": "Tìm kiếm khóa học, bài tập...",
     "calendar": "Lịch biểu",
@@ -11,7 +13,9 @@
     "status": "Trạng thái",
     "actions": "Hành động",
     "loading": "Đang tải...",
-    "search": "Tìm kiếm"
+    "search": "Tìm kiếm",
+    "error_fail": "Đã xảy ra lỗi, vui lòng thử lại.",
+    "error_title": "Lỗi hệ thống"
   },
   "status": {
     "PUBLISHED": "Đang mở",

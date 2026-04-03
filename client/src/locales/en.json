@@ -1,4 +1,6 @@
 {
+  "common.error_fail": "An error occurred, please try again.",
+  "common.error_title": "System Error",
   "common": {
     "search_placeholder": "Search courses, assignments...",
     "calendar": "Calendar",
@@ -11,7 +13,9 @@
     "status": "Status",
     "actions": "Actions",
     "loading": "Loading...",
-    "search": "Search"
+    "search": "Search",
+    "error_fail": "An error occurred, please try again.",
+    "error_title": "System Error"
   },
   "status": {
     "PUBLISHED": "Published",

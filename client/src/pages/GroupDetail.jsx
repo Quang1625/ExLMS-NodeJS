@@ -74,7 +74,8 @@ export default function GroupDetail() {
       await api.put(`/study-groups/${id}/join-requests/${reqId}`, { status })
       fetchGroupData()
     } catch (err) {
-      alert(err?.response?.data?.error || t('common.error_fail'))
+      const msg = err.response?.data?.error || err.message || t('common.error_fail')
+      alert(`${t('common.error_title')}: ${msg}`)
     }
   }
 
@@ -87,7 +88,8 @@ export default function GroupDetail() {
       alert(t('groups.join_modal.success'))
       fetchGroupData()
     } catch (err) {
-      alert(err?.response?.data?.error || t('common.error_fail'))
+      const msg = err.response?.data?.error || err.message || t('common.error_fail')
+      alert(`${t('common.error_title')}: ${msg}`)
     }
   }
 

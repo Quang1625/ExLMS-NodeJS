@@ -97,7 +97,7 @@ router.delete('/:id/chapters/:chapterId', CAN_MANAGE, async (req, res, next) => 
         const chapter = course.chapters.id(req.params.chapterId);
         if (!chapter) return res.status(404).json({ success: false, error: 'Chapter not found' });
 
-        chapter.remove();
+        course.chapters.pull(req.params.chapterId);
         await course.save();
         res.json({ success: true, message: 'Đã xóa chương thành công' });
     } catch (err) { next(err); }
@@ -121,7 +121,7 @@ router.post('/:id/chapters/:chapterId/lessons', CAN_MANAGE, async (req, res, nex
             content_type,
             content,
             resource_key,
-            duration_seconds,
+            duration_seconds: duration_seconds ? parseInt(duration_seconds) : undefined,
             order_index: order_index || (chapter.lessons.length + 1)
         };
 
@@ -133,6 +133,33 @@ router.post('/:id/chapters/:chapterId/lessons', CAN_MANAGE, async (req, res, nex
             data: chapter.lessons[chapter.lessons.length - 1], 
             message: 'Bài học đã được thêm thành công' 
         });
+    } catch (err) { next(err); }
+});
+
+// PUT /courses/:id/chapters/:chapterId/lessons/:lessonId – update a lesson
+router.put('/:id/chapters/:chapterId/lessons/:lessonId', CAN_MANAGE, async (req, res, next) => {
+    try {
+        const { id: courseId, chapterId, lessonId } = req.params;
+        const { title, content_type, content, resource_key, duration_seconds, order_index } = req.body;
+
+        const course = await Course.findById(courseId);
+        if (!course) return res.status(404).json({ success: false, error: 'Course not found' });
+
+        const chapter = course.chapters.id(chapterId);
+        if (!chapter) return res.status(404).json({ success: false, error: 'Chapter not found' });
+
+        const lesson = chapter.lessons.id(lessonId);
+        if (!lesson) return res.status(404).json({ success: false, error: 'Lesson not found' });
+
+        if (title !== undefined) lesson.title = title;
+        if (content_type !== undefined) lesson.content_type = content_type;
+        if (content !== undefined) lesson.content = content;
+        if (resource_key !== undefined) lesson.resource_key = resource_key;
+        if (duration_seconds !== undefined) lesson.duration_seconds = duration_seconds ? parseInt(duration_seconds) : undefined;
+        if (order_index !== undefined) lesson.order_index = order_index;
+
+        await course.save();
+        res.json({ success: true, data: lesson, message: 'Bài học đã được cập nhật' });
     } catch (err) { next(err); }
 });
 

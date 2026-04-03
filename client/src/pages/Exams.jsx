@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import Layout from '../components/Layout'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
+import { showError } from '../utils/errors'
 
 const EXAM_COLORS = [
   { gradient: 'linear-gradient(135deg, #6c63ff 0%, #4834d4 100%)', shadow: 'rgba(108,99,255,0.3)' },
@@ -49,7 +50,7 @@ export default function Exams() {
       await api.delete(`/quizzes/${examId}`)
       setExams(exams.filter(ex => ex._id !== examId))
     } catch (err) {
-      alert(t('common.error_fail'))
+      showError(t, err)
     }
   }
 
