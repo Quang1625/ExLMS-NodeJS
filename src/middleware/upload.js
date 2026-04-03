@@ -52,13 +52,13 @@ const lessonFilter = (req, file, cb) => {
 
 const uploadInstructor = multer({ 
     storage: assignmentStorage, 
-    limits: { fileSize: 50 * 1024 * 1024 }, // 50MB
+    limits: { fileSize: 1000 * 1024 * 1024 }, // 1000MB
     fileFilter: assignmentFilter 
 });
 
 const uploadStudent = multer({ 
     storage: assignmentStorage, 
-    limits: { fileSize: 25 * 1024 * 1024 }, // 25MB
+    limits: { fileSize: 1000 * 1024 * 1024 }, // 1000MB
     fileFilter: assignmentFilter 
 });
 
