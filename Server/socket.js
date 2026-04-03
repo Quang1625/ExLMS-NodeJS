@@ -1,18 +1,11 @@
-const socketIo = require('socket.io');
+const { Server } = require('socket.io');
 
 let io;
-const allowedOrigins = (process.env.CORS_ORIGIN || process.env.FRONTEND_URL || '')
-    .split(',')
-    .map(origin => origin.trim())
-    .filter(Boolean);
-
-const corsOrigin = allowedOrigins.length
-    ? allowedOrigins
-    : true;
 
 module.exports = {
     init: (server) => {
-        io = socketIo(server, {
+        io = new Server(server, {
+            path: '/socket.io/',
             cors: {
                 origin: (origin, callback) => {
                     // Allow all origins for testing, or specifically reflect back the caller's origin
