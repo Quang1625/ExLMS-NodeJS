@@ -14,7 +14,11 @@ module.exports = {
     init: (server) => {
         io = socketIo(server, {
             cors: {
-                origin: corsOrigin,
+                origin: (origin, callback) => {
+                    // Allow all origins for testing, or specifically reflect back the caller's origin
+                    // which is required when credentials are set to true.
+                    callback(null, origin || true);
+                },
                 methods: ['GET', 'POST', 'PUT', 'DELETE'],
                 credentials: true
             }
