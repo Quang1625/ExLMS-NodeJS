@@ -5,17 +5,13 @@ let io;
 module.exports = {
     init: (server) => {
         io = new Server(server, {
-            path: '/socket.io/',
+            path: '/socket.io',
             cors: {
-                origin: (origin, callback) => {
-                    // Allow all origins for testing, or specifically reflect back the caller's origin
-                    // which is required when credentials are set to true.
-                    callback(null, origin || true);
-                },
-                methods: ['GET', 'POST', 'PUT', 'DELETE'],
-                credentials: true
+                origin: "*",
+                methods: ['GET', 'POST', 'PUT', 'DELETE']
             }
         });
+        console.log('📡 Socket.io Server initialized on path: /socket.io');
 
         io.on('connection', (socket) => {
             console.log('Client connected:', socket.id);
