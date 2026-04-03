@@ -213,8 +213,18 @@ router.post('/:id/attempts', async (req, res, next) => {
 // DELETE quiz
 router.delete('/:id', async (req, res, next) => {
     try {
-        const quiz = await Quiz.findByIdAndDelete(req.params.id);
+        const quiz = await Quiz.findById(req.params.id);
         if (!quiz) return res.status(404).json({ error: 'Quiz not found' });
+        
+        // Authorization check
+        const isAdmin = req.user.role === 'ADMIN';
+        const isCreator = quiz.created_by && quiz.created_by.toString() === req.user._id.toString();
+        
+        if (!isAdmin && !isCreator) {
+            return res.status(403).json({ error: 'You do not have permission to delete this quiz' });
+        }
+
+        await Quiz.findByIdAndDelete(req.params.id);
         
         // Also delete any associated attempts
         await QuizAttempt.deleteMany({ quiz_id: req.params.id });

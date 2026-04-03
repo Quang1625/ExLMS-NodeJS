@@ -20,7 +20,6 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY package.json ./
 COPY src ./src
 COPY Server ./Server
-COPY scripts ./scripts
 COPY public ./public
 
 EXPOSE 3000

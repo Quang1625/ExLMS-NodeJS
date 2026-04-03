@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import Layout from '../components/Layout'
 import api from '../api/axios'
+import { useAuth } from '../context/AuthContext'
 
 const EXAM_COLORS = [
   { gradient: 'linear-gradient(135deg, #6c63ff 0%, #4834d4 100%)', shadow: 'rgba(108,99,255,0.3)' },
@@ -14,8 +15,10 @@ const EXAM_COLORS = [
 export default function Exams() {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const { user } = useAuth()
   const [exams, setExams] = useState([])
   const [loading, setLoading] = useState(true)
+  const canManage = user?.role === 'INSTRUCTOR' || user?.role === 'ADMIN'
 
   useEffect(() => {
     const fetchExams = async () => {
@@ -38,6 +41,16 @@ export default function Exams() {
     if (!code) return
     if (code.toUpperCase() !== exam.access_code?.toUpperCase()) { alert(t('exams.invalid_code')); return }
     navigate(`/quiz/single/${exam._id}`)
+  }
+
+  const handleDeleteExam = async (examId) => {
+    if (!window.confirm(t('forum.delete_confirm'))) return
+    try {
+      await api.delete(`/quizzes/${examId}`)
+      setExams(exams.filter(ex => ex._id !== examId))
+    } catch (err) {
+      alert(t('common.error_fail'))
+    }
   }
 
   if (loading) return <Layout><div className="spinner-wrap"><div className="spinner" /></div></Layout>
@@ -113,13 +126,25 @@ export default function Exams() {
                       ))}
                     </div>
 
-                    <button
-                      className="btn btn-primary btn-lg"
-                      style={{ width: '100%', marginTop: '1.25rem', justifyContent: 'center', boxShadow: `0 4px 16px ${color.shadow}` }}
-                      onClick={() => startExam(exam)}
-                    >
-                      🚀 {t('exams.btn_start')}
-                    </button>
+                    <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.25rem' }}>
+                      <button
+                        className="btn btn-primary btn-lg"
+                        style={{ flex: 1, justifyContent: 'center', boxShadow: `0 4px 16px ${color.shadow}` }}
+                        onClick={() => startExam(exam)}
+                      >
+                        🚀 {t('exams.btn_start')}
+                      </button>
+                      {canManage && (
+                        <button
+                          className="btn btn-danger"
+                          style={{ padding: '0 1rem', display: 'flex', alignItems: 'center' }}
+                          title={t('common.delete')}
+                          onClick={() => handleDeleteExam(exam._id)}
+                        >
+                          🗑️
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               )

@@ -199,6 +199,17 @@ export default function CourseDetail() {
     }
   }
 
+  const handleDeleteQuiz = async (quizId) => {
+    if (!window.confirm(t('forum.delete_confirm'))) return
+    try {
+      await api.delete(`/quizzes/${quizId}`)
+      const qRes = await api.get(`/quizzes?course_id=${id}`)
+      setQuizzes(qRes.data)
+    } catch (err) {
+      alert(t('common.error_fail'))
+    }
+  }
+
   if (loading) return <Layout><div className="spinner-wrap"><div className="spinner" /></div></Layout>
   if (!course) return null
 
@@ -318,9 +329,10 @@ export default function CourseDetail() {
                     </button>
                     {canManage && (
                       <>
-                        <button className="btn btn-secondary btn-sm" onClick={() => setQuizModal(qz)}>✏️</button>
-                        <button className="btn btn-secondary btn-sm" onClick={() => setEditingQuizQuestions(qz)}>📝</button>
-                        <button className="btn btn-secondary btn-sm" onClick={() => handleExport(qz._id)}>📊</button>
+                        <button className="btn btn-secondary btn-sm" title={t('common.edit')} onClick={() => setQuizModal(qz)}>✏️</button>
+                        <button className="btn btn-secondary btn-sm" title={t('course_detail.edit_questions')} onClick={() => setEditingQuizQuestions(qz)}>📝</button>
+                        <button className="btn btn-secondary btn-sm" title={t('quiz.export_btn')} onClick={() => handleExport(qz._id)}>📊</button>
+                        <button className="btn btn-danger btn-sm" title={t('common.delete')} onClick={() => handleDeleteQuiz(qz._id)}>🗑️</button>
                         <button className="btn btn-primary btn-sm" onClick={() => handleCreateLiveRoom(qz._id)}>⚡ Live</button>
                       </>
                     )}
