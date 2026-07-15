@@ -116,7 +116,7 @@ router.put('/:id/progress', async (req, res, next) => {
 
         const totalLessons = await getTotalLessonsInCourse(enrollment.course_id);
         const completedLessons = enrollment.lesson_progress.filter(lp => lp.is_completed).length;
-        enrollment.progress_percent = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
+        enrollment.progress_percent = (totalLessons > 0 && completedLessons === totalLessons) ? 100 : 0;
 
         if (enrollment.progress_percent >= 100) {
             enrollment.is_completed = true;

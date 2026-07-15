@@ -22,7 +22,7 @@ const getDetailLink = (event) => {
     case 'COURSE':     return `/courses/${src.entity_id}`
     case 'ASSIGNMENT': return `/assignments/${src.entity_id}`
     case 'QUIZ':       return `/quiz/dashboard`
-    case 'MEETING':    return `/meetings/${src.entity_id}`
+    case 'MEETING':    return event.group_id ? `/groups/${event.group_id}?tab=meetings` : `/groups`
     default:           return null
   }
 }

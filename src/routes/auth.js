@@ -137,7 +137,9 @@ router.post('/login', async (req, res, next) => {
                 email: user.email,
                 full_name: user.full_name,
                 role: user.role,
-                avatar_key: user.avatar_key
+                avatar_key: user.avatar_key,
+                bio: user.bio,
+                created_at: user.created_at
             }
         });
     } catch (err) { next(err); }
@@ -284,7 +286,9 @@ router.post('/google', async (req, res, next) => {
                 email: user.email,
                 full_name: user.full_name,
                 role: user.role,
-                avatar_key: user.avatar_key
+                avatar_key: user.avatar_key,
+                bio: user.bio,
+                created_at: user.created_at
             }
         });
     } catch (err) {

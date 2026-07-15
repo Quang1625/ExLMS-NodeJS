@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react'
+import { Save, Plus, X } from 'lucide-react'
+
 
 /**
  * CrudModal – generic create/edit modal
@@ -18,7 +20,11 @@ export default function CrudModal({ title, fields, initialData, onSubmit, onClos
   useEffect(() => {
     const init = {}
     fields.forEach(f => {
-      init[f.name] = initialData?.[f.name] ?? f.default ?? ''
+      if (f.type === 'checkbox') {
+        init[f.name] = initialData?.[f.name] ?? f.default ?? false
+      } else {
+        init[f.name] = initialData?.[f.name] ?? f.default ?? ''
+      }
     })
     setForm(init)
     setError('')
@@ -37,7 +43,18 @@ export default function CrudModal({ title, fields, initialData, onSubmit, onClos
     setError('')
     setLoading(true)
     try {
-      await onSubmit(form)
+      const cleanedForm = { ...form }
+      fields.forEach(f => {
+        if (cleanedForm[f.name] === '') {
+          if (f.type === 'number' || f.type === 'checkbox') {
+            delete cleanedForm[f.name]
+          }
+        }
+        if (f.type === 'checkbox') {
+          cleanedForm[f.name] = !!cleanedForm[f.name]
+        }
+      })
+      await onSubmit(cleanedForm)
     } catch (err) {
       setError(err?.response?.data?.error || err.message || 'Đã xảy ra lỗi')
     } finally {
@@ -46,34 +63,37 @@ export default function CrudModal({ title, fields, initialData, onSubmit, onClos
   }
 
   return (
-    <div style={overlay} onClick={e => { if (e.target === e.currentTarget) onClose() }}>
-      <div style={modal}>
+    <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) onClose() }}>
+      <div className="modal-content fade-in" style={{ padding: '2rem' }}>
         {/* Header */}
-        <div style={header}>
-          <h2 style={{ margin: 0, fontSize: '1.125rem' }}>{title}</h2>
-          <button style={closeBtn} onClick={onClose}>✕</button>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+          <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700 }}>{title}</h2>
+          <button className="modal-close" onClick={onClose} aria-label="Close modal" style={{ position: 'static', transform: 'none' }}>
+            <X size={18} />
+          </button>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} style={body}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           {error && (
-            <div style={errorBox}>{error}</div>
+            <div className="alert alert-error" style={{ margin: 0 }}>{error}</div>
           )}
 
           <div style={fieldsGrid}>
             {fields.map(f => (
               <div key={f.name} style={{ ...fieldWrap, gridColumn: f.grid === 'half' ? 'span 1' : 'span 2' }}>
-                <label style={labelStyle}>
+                <label className="form-label" style={{ marginBottom: '0.25rem', fontSize: '0.8125rem' }}>
                   {f.label}
                   {f.required && <span style={{ color: 'var(--danger)', marginLeft: 2 }}>*</span>}
                 </label>
 
               {f.type === 'select' ? (
                 <select
-                  style={inputStyle}
+                  className="form-input form-select"
                   value={form[f.name] ?? ''}
                   onChange={e => handleChange(f.name, e.target.value, f.type)}
                   required={f.required}
+                  style={{ cursor: 'pointer' }}
                 >
                   <option value="">— Chọn —</option>
                   {f.options?.map(o => (
@@ -82,19 +102,20 @@ export default function CrudModal({ title, fields, initialData, onSubmit, onClos
                 </select>
               ) : f.type === 'textarea' ? (
                 <textarea
-                  style={{ ...inputStyle, minHeight: 90, resize: 'vertical' }}
+                  className="form-input"
+                  style={{ minHeight: 90, resize: 'vertical' }}
                   value={form[f.name] ?? ''}
                   onChange={e => handleChange(f.name, e.target.value, f.type)}
                   placeholder={f.placeholder}
                   required={f.required}
                 />
               ) : f.type === 'checkbox' ? (
-                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', marginTop: '0.25rem' }}>
                   <input
                     type="checkbox"
                     checked={!!form[f.name]}
                     onChange={e => handleChange(f.name, e.target.checked)}
-                    style={{ width: 16, height: 16 }}
+                    style={{ width: 18, height: 18, cursor: 'pointer' }}
                   />
                   <span style={{ fontSize: '0.875rem', color: 'var(--text-2)' }}>{f.placeholder}</span>
                 </label>
@@ -102,6 +123,7 @@ export default function CrudModal({ title, fields, initialData, onSubmit, onClos
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <input
                     type="file"
+                    className="form-input"
                     onChange={e => handleChange(f.name, e.target.files[0], 'file')}
                     accept={f.accept}
                     required={f.required && !initialData}
@@ -116,7 +138,7 @@ export default function CrudModal({ title, fields, initialData, onSubmit, onClos
               ) : (
                 <input
                   type={f.type || 'text'}
-                  style={inputStyle}
+                  className="form-input"
                   value={form[f.name] ?? ''}
                   onChange={e => handleChange(f.name, e.target.value, f.type)}
                   placeholder={f.placeholder}
@@ -140,7 +162,15 @@ export default function CrudModal({ title, fields, initialData, onSubmit, onClos
                 <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <span style={spinner} />Đang lưu…
                 </span>
-              ) : initialData ? '💾 Lưu thay đổi' : '➕ Tạo mới'}
+              ) : initialData ? (
+                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Save size={16} /> Lưu thay đổi
+                </span>
+              ) : (
+                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Plus size={16} /> Tạo mới
+                </span>
+              )}
             </button>
           </div>
         </form>
@@ -152,53 +182,6 @@ export default function CrudModal({ title, fields, initialData, onSubmit, onClos
 // PropTypes removed – prop-types is not installed in this project
 
 // ── Inline styles ──────────────────────────────────────────────────────────────
-const overlay = {
-  position:        'fixed',
-  inset:           0,
-  background:      'rgba(0,0,0,0.6)',
-  backdropFilter:  'blur(4px)',
-  display:         'flex',
-  alignItems:      'center',
-  justifyContent:  'center',
-  zIndex:          1000,
-  padding:         '1rem'
-}
-
-const modal = {
-  background:   'var(--bg-2)',
-  border:       '1px solid var(--border)',
-  borderRadius: 'var(--radius)',
-  width:        '100%',
-  maxWidth:     560,
-  maxHeight:    '90vh',
-  overflowY:    'auto',
-  boxShadow:    '0 24px 64px rgba(0,0,0,0.5)'
-}
-
-const header = {
-  display:         'flex',
-  alignItems:      'center',
-  justifyContent:  'space-between',
-  padding:         '1.25rem 1.5rem',
-  borderBottom:    '1px solid var(--border)',
-  position:        'sticky',
-  top:             0,
-  background:      'var(--bg-2)',
-  zIndex:          1
-}
-
-const closeBtn = {
-  background:   'transparent',
-  border:       'none',
-  color:        'var(--text-3)',
-  cursor:       'pointer',
-  fontSize:     '1.1rem',
-  padding:      '4px 8px',
-  borderRadius: 6
-}
-
-const body = { padding: '1.25rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }
-
 const fieldsGrid = {
   display: 'grid',
   gridTemplateColumns: 'repeat(2, 1fr)',
@@ -206,30 +189,6 @@ const fieldsGrid = {
 }
 
 const fieldWrap = { display: 'flex', flexDirection: 'column', gap: 6 }
-
-const labelStyle = { fontSize: '0.8125rem', fontWeight: 600, color: 'var(--text-2)' }
-
-const inputStyle = {
-  background: 'var(--bg-3)',
-  border:     '1px solid var(--border)',
-  borderRadius: 8,
-  padding:    '0.5rem 0.75rem',
-  color:      'var(--text)',
-  fontSize:   '0.9rem',
-  width:      '100%',
-  boxSizing:  'border-box',
-  outline:    'none',
-  transition: 'border-color 0.2s'
-}
-
-const errorBox = {
-  background:   'rgba(239,68,68,0.12)',
-  border:       '1px solid var(--danger)',
-  borderRadius: 8,
-  padding:      '0.6rem 0.875rem',
-  color:        'var(--danger)',
-  fontSize:     '0.85rem'
-}
 
 const spinner = {
   display:     'inline-block',

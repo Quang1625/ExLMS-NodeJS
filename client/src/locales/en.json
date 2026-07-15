@@ -16,7 +16,17 @@
     "search": "Search",
     "error_fail": "An error occurred, please try again.",
     "error_title": "System Error",
-    "exit": "Exit"
+    "exit": "Exit",
+    "greeting_morning": "Good morning",
+    "greeting_afternoon": "Good afternoon",
+    "greeting_evening": "Good evening",
+    "close": "Close",
+    "delete": "Delete",
+    "edit": "Edit",
+    "all": "All",
+    "open": "Open",
+    "no_description": "No description",
+    "start_guide": "Click \"{{action}}\" to start."
   },
   "status": {
     "PUBLISHED": "Published",
@@ -39,6 +49,7 @@
     "exams": "Exams",
     "quiz_realtime": "Quiz Realtime",
     "quiz_dashboard": "Quiz Dashboard",
+    "quiz_manager": "Quiz Manager",
     "groups": "Groups",
     "forum": "Forum",
     "admin_users": "User Management",
@@ -107,7 +118,8 @@
     },
     "delete_confirm": "Are you sure you want to archive (delete) this course?",
     "delete_fail": "Delete failed",
-    "logged_in_as": "Logged in as: {{name}} · Role: {{role}}"
+    "logged_in_as": "Logged in as: {{name}} · Role: {{role}}",
+    "ratings": "ratings"
   },
   "quiz": {
     "create_title": "Create new Quiz: {{title}}",
@@ -185,7 +197,42 @@
     "question_label": "Question",
     "prev_btn": "Previous",
     "next_btn": "Next",
-    "submit_btn": "Submit Quiz"
+    "submit_btn": "Submit Quiz",
+    "confirm_exit_submit": "Are you sure you want to exit? Your attempt will be automatically submitted with the questions you have answered.",
+    "editor": {
+      "manage_questions": "Manage Questions",
+      "save_questions": "Save Changes",
+      "quiz_settings": "Quiz Settings",
+      "quiz_type": "Quiz Type",
+      "access_code": "Access Code",
+      "access_code_hint": "Code used for students to join the exam. Leave empty for practice.",
+      "no_questions": "No questions yet",
+      "no_questions_subtitle": "Start adding questions to build this quiz.",
+      "add_first_question": "Add First Question",
+      "types": {
+        "SINGLE_CHOICE": "Single Choice",
+        "MULTIPLE_CHOICE": "Multiple Choice",
+        "TRUE_FALSE": "True / False",
+        "SHORT_ANSWER": "Short Answer",
+        "FILL_BLANK": "Fill in the Blank",
+        "ORDERING": "Ordering"
+      },
+      "points": "Points",
+      "question_content": "Question Content",
+      "media_attach": "Attach Media",
+      "none": "None",
+      "image_url": "Image (Link)",
+      "video_url": "Video (YouTube Link)",
+      "answers_label": "Answers (Check to mark as correct)",
+      "add_answer": "Add Answer",
+      "explanation": "Answer Explanation",
+      "add_new_question": "Add New Question",
+      "validation": {
+        "content_empty": "Please enter content for question #{{index}}",
+        "min_answers": "Question #{{index}} must have at least 2 answers (except short answer)",
+        "no_correct": "Question #{{index}} must have at least 1 correct answer"
+      }
+    }
   },
   "profile": {
     "profile_title": "My Profile 👤",
@@ -484,7 +531,13 @@
         "FILE": "Attachment",
         "EMBED": "Embed Link"
       }
-    }
+    },
+    "qna_empty_title": "Q&A Discussion",
+    "qna_empty_desc": "Course discussion feature is coming soon!",
+    "res_empty_title": "Resources",
+    "res_empty_desc": "No attachments are provided for this course.",
+    "notes_hint": "Store your personal notes for this course (Saved in browser).",
+    "no_desc": "No detailed description available for this course."
   },
   "assignment_detail": {
     "back": "Back to List",
@@ -577,6 +630,51 @@
       "login_link": "Sign in here",
       "processing": "Processing...",
       "register_fail": "Registration failed"
+    }
+  },
+  "builder": {
+    "cancel": "Cancel",
+    "saving": "Saving...",
+    "uploading": "Uploading...",
+    "save_changes": "💾 Save Changes",
+    "create_chapter": "➕ Create Chapter",
+    "create_lesson": "➕ Create Lesson",
+    "chapter_title": "Chapter Title",
+    "chapter_title_ph": "Example: Chapter 1: Node.js Overview",
+    "chapter_desc": "Short Description (Optional)",
+    "chapter_desc_ph": "Describe what students will learn...",
+    "chapter_order": "Sort Order",
+    "chapter_lock": "Lock this chapter?",
+    "chapter_lock_hint": "Students must complete the previous chapter to unlock",
+    "lesson_title": "Lesson Title",
+    "lesson_title_ph": "Example: Intro to ExpressJS",
+    "lesson_title_req": "Lesson title is required",
+    "lesson_file_req": "Please upload a file or provide a valid link",
+    "lesson_desc": "Short Description",
+    "lesson_desc_ph": "Describe the objective of this lesson...",
+    "lesson_type": "Content Type",
+    "lesson_duration": "Duration (seconds)",
+    "lesson_duration_ph": "Example: 600",
+    "content_doc": "Lesson Content",
+    "content_doc_ph": "Enter lesson content here...",
+    "content_embed": "Link / Embed Code (iFrame)",
+    "content_embed_ph": "Example: https://youtube.com/...",
+    "content_upload": "Upload File",
+    "drag_drop": "Drag and drop file here",
+    "drag_drop_hint": "Or click to browse files",
+    "file_selected": "Selected:",
+    "file_current": "Current file:",
+    "or_link": "OR USE DIRECT LINK",
+    "link_ph": "Enter direct URL (if not uploading a file)",
+    "types": {
+      "video": "Video",
+      "video_desc": "Upload or embed Video (MP4, YouTube)",
+      "doc": "Document",
+      "doc_desc": "Draft text content directly",
+      "file": "Attachment",
+      "file_desc": "Upload PDF, PPT, Word for students to download",
+      "embed": "Embed Code",
+      "embed_desc": "Embed iFrame, SlideShare, Google Docs"
     }
   }
 }

@@ -5,6 +5,7 @@ import Layout from '../components/Layout'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
 import { showError } from '../utils/errors'
+import { Shield, Key, Clock, RotateCcw, Target, Play, Trash2, BookOpen, FileText } from 'lucide-react'
 
 const EXAM_COLORS = [
   { gradient: 'linear-gradient(135deg, #6c63ff 0%, #4834d4 100%)', shadow: 'rgba(108,99,255,0.3)' },
@@ -41,7 +42,7 @@ export default function Exams() {
     const code = prompt(t('exams.room_code_prompt'))
     if (!code) return
     if (code.toUpperCase() !== exam.access_code?.toUpperCase()) { alert(t('exams.invalid_code')); return }
-    navigate(`/quiz/single/${exam._id}`)
+    navigate(`/quiz/${exam._id}`)
   }
 
   const handleDeleteExam = async (examId) => {
@@ -59,90 +60,161 @@ export default function Exams() {
   return (
     <Layout>
       <div className="page fade-in">
-        <div style={{ marginBottom: '2rem' }}>
-          <h1 style={{ fontSize: '1.85rem', fontWeight: 800, marginBottom: '0.25rem' }}>{t('exams.title')}</h1>
-          <p style={{ color: 'var(--text-2)' }}>{t('exams.subtitle')}</p>
+        <div style={{ marginBottom: '2.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', borderBottom: '1px solid var(--border)', paddingBottom: '1.5rem' }}>
+          <div>
+            <h1 style={{ fontSize: '2.2rem', fontWeight: 800, letterSpacing: '-0.02em', background: 'linear-gradient(135deg, var(--text) 30%, var(--primary-2) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: '0.4rem' }}>
+              {t('exams.title')}
+            </h1>
+            <p style={{ color: 'var(--text-2)', fontSize: '0.95rem' }}>{t('exams.subtitle')}</p>
+          </div>
+          <div style={{ fontSize: '0.85rem', color: 'var(--text-3)', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--glass)', padding: '0.5rem 1rem', borderRadius: '99px', border: '1px solid var(--border)' }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><FileText size={16} /> Tổng số bài thi:</span>
+            <strong style={{ color: 'var(--primary-2)' }}>{exams.length}</strong>
+          </div>
         </div>
 
         {exams.length === 0 ? (
-          <div className="card" style={{ textAlign: 'center', padding: '5rem 2rem' }}>
-            <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>📋</div>
-            <h3 style={{ fontWeight: 700, marginBottom: '0.5rem' }}>{t('exams.empty_title')}</h3>
-            <p style={{ color: 'var(--text-3)', maxWidth: '360px', margin: '0 auto' }}>{t('exams.empty_subtitle')}</p>
+          <div className="card" style={{ textAlign: 'center', padding: '6rem 2rem', background: 'var(--glass)', border: '1px dashed var(--border)', borderRadius: '24px' }}>
+            <FileText size={64} style={{ color: 'var(--text-3)', marginBottom: '1.5rem', filter: 'drop-shadow(0 8px 16px rgba(108,99,255,0.2))' }} />
+            <h3 style={{ fontWeight: 800, fontSize: '1.4rem', marginBottom: '0.5rem', color: 'var(--text)' }}>{t('exams.empty_title')}</h3>
+            <p style={{ color: 'var(--text-2)', maxWidth: '400px', margin: '0 auto', fontSize: '0.9rem', lineHeight: '1.6' }}>{t('exams.empty_subtitle')}</p>
           </div>
         ) : (
-          <div className="grid-3">
+          <div className="grid-3" style={{ gap: '1.75rem' }}>
             {exams.map((exam, i) => {
               const color = EXAM_COLORS[i % EXAM_COLORS.length]
               return (
-                <div key={exam._id} className="card" style={{ display: 'flex', flexDirection: 'column', padding: 0, overflow: 'hidden' }}>
-                  {/* Card Header */}
+                <div
+                  key={exam._id}
+                  className="glass-card-hover"
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    padding: 0,
+                    overflow: 'hidden',
+                    borderRadius: '24px',
+                    background: 'var(--bg-2)',
+                    border: '1px solid var(--border)',
+                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                  }}
+                >
+                  {/* Card Header Gradient banner */}
                   <div style={{
                     background: color.gradient,
-                    padding: '1.5rem',
+                    padding: '1.75rem 1.5rem',
                     position: 'relative',
                     overflow: 'hidden'
                   }}>
+                    {/* Decorative Background Circles */}
                     <div style={{
-                      position: 'absolute', top: '-20px', right: '-20px',
-                      width: '80px', height: '80px', borderRadius: '50%',
-                      background: 'rgba(255,255,255,0.1)'
+                      position: 'absolute', top: '-15px', right: '-15px',
+                      width: '90px', height: '90px', borderRadius: '50%',
+                      background: 'rgba(255,255,255,0.12)', filter: 'blur(5px)'
                     }} />
                     <div style={{
-                      position: 'absolute', bottom: '-30px', left: '20px',
-                      width: '60px', height: '60px', borderRadius: '50%',
-                      background: 'rgba(255,255,255,0.05)'
+                      position: 'absolute', bottom: '-25px', left: '15px',
+                      width: '70px', height: '70px', borderRadius: '50%',
+                      background: 'rgba(255,255,255,0.06)', filter: 'blur(3px)'
                     }} />
-                    <span style={{
-                      fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase',
-                      letterSpacing: '0.1em', background: 'rgba(255,255,255,0.2)',
-                      padding: '3px 10px', borderRadius: '99px', color: '#fff'
-                    }}>
-                      {t('course_detail.exam_label')}
-                    </span>
-                    <div style={{ fontWeight: 800, fontSize: '1.2rem', marginTop: '0.75rem', color: '#fff', lineHeight: 1.3 }}>
-                      {exam.title}
+                    
+                    <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
+                      <span style={{
+                        fontSize: '0.65rem', fontWeight: 800, textTransform: 'uppercase',
+                        letterSpacing: '0.08em', background: 'rgba(255,255,255,0.22)',
+                        padding: '3px 10px', borderRadius: '99px', color: '#fff',
+                        backdropFilter: 'blur(4px)'
+                      }}>
+                        {t('course_detail.exam_label')}
+                      </span>
+                      {exam.enable_anti_cheat && (
+                        <span style={{
+                          fontSize: '0.65rem', fontWeight: 800, textTransform: 'uppercase',
+                          letterSpacing: '0.08em', background: 'rgba(239, 68, 68, 0.4)',
+                          padding: '3px 10px', borderRadius: '99px', color: '#ffb3b3',
+                          backdropFilter: 'blur(4px)', display: 'inline-flex', alignItems: 'center', gap: '4px'
+                        }}>
+                          <Shield size={10} /> Chống gian lận
+                        </span>
+                      )}
+                      {exam.access_code && (
+                        <span style={{
+                          fontSize: '0.65rem', fontWeight: 800, textTransform: 'uppercase',
+                          letterSpacing: '0.08em', background: 'rgba(245, 158, 11, 0.4)',
+                          padding: '3px 10px', borderRadius: '99px', color: '#ffe17d',
+                          backdropFilter: 'blur(4px)', display: 'inline-flex', alignItems: 'center', gap: '4px'
+                        }}>
+                          <Key size={10} /> Cần mã phòng
+                        </span>
+                      )}
                     </div>
+
+                    <h3 style={{ fontWeight: 800, fontSize: '1.25rem', color: '#fff', lineHeight: 1.35, textShadow: '0 2px 4px rgba(0,0,0,0.15)' }}>
+                      {exam.title}
+                    </h3>
                     {exam.course_id?.title && (
-                      <div style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.7)', marginTop: '0.4rem' }}>
-                        📚 {exam.course_id.title}
+                      <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.85)', marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 500 }}>
+                        <BookOpen size={14} /> <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{exam.course_id.title}</span>
                       </div>
                     )}
                   </div>
 
-                  {/* Card Body */}
-                  <div style={{ padding: '1.25rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', flex: 1 }}>
+                  {/* Card Body Info list */}
+                  <div style={{ padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--bg-2)' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', flex: 1 }}>
                       {[
-                        { label: t('quiz.form.time_limit'), value: exam.time_limit_sec ? `${Math.floor(exam.time_limit_sec / 60)} min` : '∞', icon: '⏱️' },
-                        { label: t('quiz.form.attempts'), value: exam.max_attempts || '∞', icon: '🔄' },
-                        { label: t('quiz.form.pass_score'), value: `${exam.passing_score}%`, icon: '🎯' },
+                        { label: t('quiz.form.time_limit'), value: exam.time_limit_sec ? `${Math.floor(exam.time_limit_sec / 60)} phút` : 'Không giới hạn', icon: <Clock size={14} />, color: 'var(--accent)' },
+                        { label: t('quiz.form.attempts'), value: exam.max_attempts ? `${exam.max_attempts} lần` : 'Vô hạn', icon: <RotateCcw size={14} />, color: 'var(--primary-2)' },
+                        { label: t('quiz.form.pass_score'), value: `${exam.passing_score}%`, icon: <Target size={14} />, color: 'var(--success)' },
                       ].map((item, idx) => (
-                        <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem' }}>
-                          <span style={{ color: 'var(--text-3)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                            <span style={{ fontSize: '0.9rem' }}>{item.icon}</span> {item.label}
+                        <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.88rem' }}>
+                          <span style={{ color: 'var(--text-2)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <span style={{
+                              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                              width: '24px', height: '24px', borderRadius: '6px',
+                              background: 'var(--glass)', color: item.color
+                            }}>{item.icon}</span>
+                            <span>{item.label}</span>
                           </span>
-                          <span style={{ fontWeight: 700 }}>{item.value}</span>
+                          <span style={{ fontWeight: 700, color: 'var(--text)' }}>{item.value}</span>
                         </div>
                       ))}
                     </div>
 
-                    <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.25rem' }}>
+                    <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem' }}>
                       <button
-                        className="btn btn-primary btn-lg"
-                        style={{ flex: 1, justifyContent: 'center', boxShadow: `0 4px 16px ${color.shadow}` }}
+                        className="btn btn-primary"
+                        style={{
+                          flex: 1,
+                          justifyContent: 'center',
+                          padding: '0.75rem 1.25rem',
+                          borderRadius: '12px',
+                          fontWeight: 750,
+                          fontSize: '0.95rem',
+                          boxShadow: `0 8px 20px ${color.shadow}`,
+                          transition: 'all 0.25s ease'
+                        }}
                         onClick={() => startExam(exam)}
                       >
-                        🚀 {t('exams.btn_start')}
+                        <Play size={16} fill="currentColor" style={{ marginRight: '6px' }} /> {t('exams.btn_start')}
                       </button>
                       {canManage && (
                         <button
                           className="btn btn-danger"
-                          style={{ padding: '0 1rem', display: 'flex', alignItems: 'center' }}
+                          style={{
+                            padding: '0 1rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            borderRadius: '12px',
+                            background: 'rgba(239, 68, 68, 0.08)',
+                            border: '1px solid rgba(239, 68, 68, 0.15)',
+                            transition: 'all 0.2s ease'
+                          }}
                           title={t('common.delete')}
                           onClick={() => handleDeleteExam(exam._id)}
                         >
-                          🗑️
+                          <Trash2 size={16} />
                         </button>
                       )}
                     </div>

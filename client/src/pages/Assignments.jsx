@@ -5,6 +5,7 @@ import Layout from '../components/Layout'
 import CrudModal from '../components/CrudModal'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
+import { FileText, Plus, Users, Keyboard, Edit3, Trash2, AlertTriangle } from 'lucide-react'
 
 const SUB_TYPES = ['FILE', 'TEXT', 'URL', 'MIXED']
 const STATUS_CLASS = { DRAFT: 'tag--warning', PUBLISHED: 'tag--success', CLOSED: 'tag--danger' }
@@ -93,12 +94,14 @@ export default function Assignments() {
       <div className="page-header">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
-            <h1>{t('assignments.title')} 📝</h1>
+            <h1 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <FileText size={28} style={{ color: 'var(--primary)' }} /> {t('assignments.title')}
+            </h1>
             <p>{t('assignments.subtitle')}</p>
           </div>
           {canManage && (
             <button className="btn btn-primary" onClick={() => setModal('create')}>
-              ➕ {t('assignments.add_assignment')}
+              <Plus size={16} /> {t('assignments.add_assignment')}
             </button>
           )}
         </div>
@@ -107,7 +110,9 @@ export default function Assignments() {
       {loading ? <div className="spinner-wrap"><div className="spinner" /></div>
       : assignments.length === 0 ? (
         <div className="empty-state fade-in">
-          <div className="empty-state__icon">📝</div>
+          <div className="empty-state__icon">
+            <FileText size={64} style={{ color: 'var(--text-3)', opacity: 0.8 }} />
+          </div>
           <h3>{t('assignments.no_assignments')}</h3>
           {canManage && <p>{t('assignments.start_guide')}</p>}
         </div>
@@ -117,16 +122,20 @@ export default function Assignments() {
             const overdue = isOverdue(a)
             return (
               <div key={a._id} className="glass-card-hover" onClick={() => navigate(`/assignments/${a._id}`)} style={{ cursor: 'pointer' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                   <div className={`status-badge ${STATUS_CLASS[a.status].replace('tag--', 'status-badge--')}`}>
                     {STATUS_LABEL[a.status]}
                   </div>
-                  {overdue && <span className="status-badge status-badge--danger">⚠️ {t('assignments.overdue')}</span>}
+                  {overdue && (
+                    <span className="status-badge status-badge--danger" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <AlertTriangle size={12} /> {t('assignments.overdue')}
+                    </span>
+                  )}
                 </div>
 
                 <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem', color: 'var(--text)' }}>{a.title}</h3>
                 <p style={{ fontSize: '0.875rem', color: 'var(--text-3)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  👥 {a.group_id?.name || '—'}
+                  <Users size={14} /> {a.group_id?.name || '—'}
                 </p>
 
                 <div style={{ flex: 1 }}>
@@ -151,8 +160,8 @@ export default function Assignments() {
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-3)', fontWeight: 500 }}>
-                    ⌨️ {t('assignments.type')}: {a.submission_type}
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-3)', fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    <Keyboard size={14} /> {t('assignments.type')}: {a.submission_type}
                   </span>
                   {canManage && (
                     <div style={{ display: 'flex', gap: '8px' }}>
@@ -160,13 +169,17 @@ export default function Assignments() {
                         className="topbar__icon-btn"
                         onClick={(e) => { e.stopPropagation(); setModal(a) }}
                         style={{ width: '32px', height: '32px' }}
-                      >✏️</button>
+                      >
+                        <Edit3 size={14} />
+                      </button>
                       <button
                         className="topbar__icon-btn"
                         onClick={(e) => { e.stopPropagation(); handleDelete(a._id) }}
                         style={{ width: '32px', height: '32px', color: 'var(--danger)' }}
                         disabled={deleting === a._id}
-                      >{deleting === a._id ? '…' : '🗑️'}</button>
+                      >
+                        {deleting === a._id ? '…' : <Trash2 size={14} />}
+                      </button>
                     </div>
                   )}
                 </div>

@@ -42,4 +42,21 @@ router.put('/read-all', async (req, res, next) => {
     } catch (err) { next(err); }
 });
 
+// DELETE all read notifications
+router.delete('/read', async (req, res, next) => {
+    try {
+        const result = await Notification.deleteMany({ recipient_id: req.user._id, is_read: true });
+        res.json({ success: true, message: 'Đã xóa tất cả thông báo đã đọc', count: result.deletedCount });
+    } catch (err) { next(err); }
+});
+
+// DELETE single notification
+router.delete('/:id', async (req, res, next) => {
+    try {
+        const notification = await Notification.findOneAndDelete({ _id: req.params.id, recipient_id: req.user._id });
+        if (!notification) return res.status(404).json({ error: 'Không tìm thấy thông báo' });
+        res.json({ success: true, message: 'Đã xóa thông báo' });
+    } catch (err) { next(err); }
+});
+
 module.exports = router;

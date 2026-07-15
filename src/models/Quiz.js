@@ -14,6 +14,8 @@ const quizSchema = new mongoose.Schema({
     quiz_type: { type: String, enum: ['PRACTICE', 'EXAM'], default: 'PRACTICE' },
     access_code: { type: String, unique: true, sparse: true },
     created_by: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    enable_anti_cheat: { type: Boolean, default: false },
+    max_violations_allowed: { type: Number, default: 0 },
     questions: [{
         _id: { type: mongoose.Schema.Types.ObjectId, auto: true },
         content: { type: String, required: true },
@@ -46,7 +48,14 @@ const quizAttemptSchema = new mongoose.Schema({
     is_passed: Boolean,
     started_at: { type: Date, required: true, default: Date.now },
     submitted_at: Date,
+    time_spent_sec: Number,
     notes: String,
+    cheat_detected: { type: Boolean, default: false },
+    violations: [{
+        type: { type: String, enum: ['TAB_SWITCH', 'FULLSCREEN_EXIT', 'WINDOW_BLUR'] },
+        timestamp: { type: Date, default: Date.now },
+        detail: String
+    }],
     responses: [{
         question_id: { type: mongoose.Schema.Types.ObjectId, required: true },
         selected_answer_id: mongoose.Schema.Types.ObjectId,

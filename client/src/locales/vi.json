@@ -16,7 +16,17 @@
     "search": "Tìm kiếm",
     "error_fail": "Đã xảy ra lỗi, vui lòng thử lại.",
     "error_title": "Lỗi hệ thống",
-    "exit": "Thoát"
+    "exit": "Thoát",
+    "greeting_morning": "Chào buổi sáng",
+    "greeting_afternoon": "Chào buổi chiều",
+    "greeting_evening": "Chào buổi tối",
+    "close": "Đóng",
+    "delete": "Xóa",
+    "edit": "Chỉnh sửa",
+    "all": "Tất cả",
+    "open": "Đang mở",
+    "no_description": "Không có mô tả",
+    "start_guide": "Nhấn \"{{action}}\" để bắt đầu."
   },
   "status": {
     "PUBLISHED": "Đang mở",
@@ -36,6 +46,7 @@
     "calendar": "Lịch biểu",
     "courses": "Khóa học của tôi",
     "assignments": "Bài tập",
+    "quiz_manager": "Quản lý Quiz",
     "exams": "Bài kiểm tra",
     "quiz_realtime": "Quiz Realtime",
     "quiz_dashboard": "Bảng điều khiển Quiz",
@@ -107,7 +118,16 @@
     },
     "delete_confirm": "Bạn có chắc muốn lưu trữ (xóa) khóa học này?",
     "delete_fail": "Xóa thất bại",
-    "logged_in_as": "Đang đăng nhập: {{name}} · Vai trò: {{role}}"
+    "logged_in_as": "Đang đăng nhập: {{name}} · Vai trò: {{role}}",
+    "search_placeholder": "Tìm kiếm khóa học...",
+    "sort_by": "Sắp xếp theo:",
+    "sort_newest": "Mới nhất",
+    "sort_oldest": "Cũ nhất",
+    "sort_a_z": "A-Z",
+    "sort_z_a": "Z-A",
+    "price_free": "Miễn phí",
+    "students": "học viên",
+    "ratings": "đánh giá"
   },
   "quiz": {
     "create_title": "Tạo Quiz mới: {{title}}",
@@ -185,7 +205,42 @@
     "question_label": "Câu hỏi",
     "prev_btn": "Quay lại",
     "next_btn": "Tiếp theo",
-    "submit_btn": "Nộp bài"
+    "submit_btn": "Nộp bài",
+    "confirm_exit_submit": "Bạn có chắc chắn muốn thoát? Bài làm của bạn sẽ được tự động nộp với số câu hỏi đã hoàn thành.",
+    "editor": {
+      "manage_questions": "Quản lý câu hỏi",
+      "save_questions": "Lưu thay đổi",
+      "quiz_settings": "Cài đặt bài kiểm tra",
+      "quiz_type": "Loại bài kiểm tra",
+      "access_code": "Mã phòng thi (Access Code)",
+      "access_code_hint": "Mã dùng để sinh viên tham gia thi. Để trống nếu là luyện tập.",
+      "no_questions": "Chưa có câu hỏi nào",
+      "no_questions_subtitle": "Hãy bắt đầu thêm câu hỏi để tạo nội dung cho bài kiểm tra này.",
+      "add_first_question": "Thêm câu hỏi đầu tiên",
+      "types": {
+        "SINGLE_CHOICE": "Trắc nghiệm 1 đáp án",
+        "MULTIPLE_CHOICE": "Trắc nghiệm nhiều đáp án",
+        "TRUE_FALSE": "Đúng / Sai",
+        "SHORT_ANSWER": "Tự luận ngắn",
+        "FILL_BLANK": "Điền khuyết",
+        "ORDERING": "Sắp xếp thứ tự"
+      },
+      "points": "Điểm",
+      "question_content": "Nội dung câu hỏi",
+      "media_attach": "Đính kèm đa phương tiện",
+      "none": "Không đính kèm",
+      "image_url": "Hình ảnh (Link)",
+      "video_url": "Video (Link YouTube)",
+      "answers_label": "Các đáp án (Tích chọn để đánh dấu đáp án đúng)",
+      "add_answer": "Thêm đáp án",
+      "explanation": "Giải thích đáp án",
+      "add_new_question": "Thêm câu hỏi mới",
+      "validation": {
+        "content_empty": "Vui lòng nhập nội dung cho câu hỏi số {{index}}",
+        "min_answers": "Câu hỏi số {{index}} phải có ít nhất 2 đáp án (trừ câu hỏi tự luận)",
+        "no_correct": "Câu hỏi số {{index}} phải có ít nhất 1 đáp án đúng"
+      }
+    }
   },
   "profile": {
     "profile_title": "Trang cá nhân 👤",
@@ -446,6 +501,15 @@
     "no_chapters": "Chưa có nội dung nào",
     "chapter_label": "Chương {{index}}: {{title}}",
     "lessons_count": "{{count}} bài học",
+    "tabs": {
+      "overview": "Tổng quan",
+      "notes": "Ghi chú",
+      "qna": "Hỏi đáp",
+      "resources": "Tài liệu"
+    },
+    "notes_placeholder": "Ghi chép lại những điểm quan trọng tại đây...",
+    "notes_save": "Lưu ghi chú",
+    "notes_saved": "Đã lưu!",
     "quizzes_title": "Bài kiểm tra & Bài thi",
     "add_quiz": "Tạo bài kiểm tra mới",
     "no_quizzes": "Khóa học này chưa có bài kiểm tra.",
@@ -484,7 +548,13 @@
         "FILE": "Tệp đính kèm",
         "EMBED": "Link nhúng"
       }
-    }
+    },
+    "qna_empty_title": "Q&A Thảo luận",
+    "qna_empty_desc": "Tính năng thảo luận khóa học sẽ sớm ra mắt!",
+    "res_empty_title": "Tài liệu tham khảo",
+    "res_empty_desc": "Không có tài liệu đính kèm nào được cung cấp cho khóa học này.",
+    "notes_hint": "Lưu trữ ghi chú cá nhân của bạn cho khóa học này (Lưu trên trình duyệt).",
+    "no_desc": "Chưa có mô tả chi tiết cho khóa học này."
   },
   "assignment_detail": {
     "back": "Quay lại",
@@ -572,6 +642,51 @@
       "login_link": "Đăng nhập tại đây",
       "processing": "Đang xử lý...",
       "register_fail": "Đăng ký thất bại"
+    }
+  },
+  "builder": {
+    "cancel": "Hủy bỏ",
+    "saving": "Đang lưu...",
+    "uploading": "Đang tải lên...",
+    "save_changes": "💾 Lưu thay đổi",
+    "create_chapter": "➕ Tạo Chương",
+    "create_lesson": "➕ Tạo Bài học",
+    "chapter_title": "Tên chương",
+    "chapter_title_ph": "Ví dụ: Chương 1: Tổng quan về Node.js",
+    "chapter_desc": "Mô tả ngắn (Không bắt buộc)",
+    "chapter_desc_ph": "Mô tả nội dung học viên sẽ đạt được sau chương này...",
+    "chapter_order": "Thứ tự sắp xếp",
+    "chapter_lock": "Khóa chương này?",
+    "chapter_lock_hint": "Học viên cần hoàn thành chương trước để mở khóa",
+    "lesson_title": "Tên bài học",
+    "lesson_title_ph": "Ví dụ: Giới thiệu về ExpressJS",
+    "lesson_title_req": "Tiêu đề bài học là bắt buộc",
+    "lesson_file_req": "Vui lòng tải lên file hoặc cung cấp đường dẫn hợp lệ",
+    "lesson_desc": "Mô tả ngắn",
+    "lesson_desc_ph": "Mô tả mục tiêu của bài học này...",
+    "lesson_type": "Loại nội dung",
+    "lesson_duration": "Thời lượng (giây)",
+    "lesson_duration_ph": "Ví dụ: 600",
+    "content_doc": "Nội dung bài học",
+    "content_doc_ph": "Nhập nội dung bài học tại đây...",
+    "content_embed": "Đường dẫn / Mã nhúng (iFrame)",
+    "content_embed_ph": "Ví dụ: https://youtube.com/...",
+    "content_upload": "Tải lên File",
+    "drag_drop": "Kéo thả file vào đây",
+    "drag_drop_hint": "Hoặc click để duyệt file trên máy tính của bạn",
+    "file_selected": "Đã chọn:",
+    "file_current": "File hiện tại:",
+    "or_link": "HOẶC DÙNG LINK GỐC",
+    "link_ph": "Nhập đường dẫn trực tiếp (nếu không tải file lên)",
+    "types": {
+      "video": "Video",
+      "video_desc": "Tải lên hoặc chèn link Video (MP4, YouTube)",
+      "doc": "Tài liệu",
+      "doc_desc": "Soạn thảo nội dung văn bản trực tiếp",
+      "file": "File đính kèm",
+      "file_desc": "Tải lên PDF, PPT, Word để học viên tải về",
+      "embed": "Mã nhúng",
+      "embed_desc": "Chèn iFrame, SlideShare, Google Docs"
     }
   }
 }

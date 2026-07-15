@@ -4,6 +4,7 @@ const ThemeContext = createContext();
 
 export const ThemeProvider = ({ children }) => {
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
+  const [primaryColor, setPrimaryColor] = useState(localStorage.getItem('primaryColor') || '#6c63ff');
 
   useEffect(() => {
     localStorage.setItem('theme', theme);
@@ -14,12 +15,17 @@ export const ThemeProvider = ({ children }) => {
     }
   }, [theme]);
 
+  useEffect(() => {
+    localStorage.setItem('primaryColor', primaryColor);
+    document.documentElement.style.setProperty('--primary', primaryColor);
+  }, [primaryColor]);
+
   const toggleTheme = () => {
     setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme, toggleTheme, primaryColor, setPrimaryColor }}>
       {children}
     </ThemeContext.Provider>
   );

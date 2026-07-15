@@ -36,17 +36,17 @@ const assignmentFilter = (req, file, cb) => {
     if (allowed.includes(ext)) {
         cb(null, true);
     } else {
-        cb(new multer.MulterError('LIMIT_UNEXPECTED_FILE', 'Loại tệp không hợp lệ. Chỉ chấp nhận PDF, DOC, PPT, ZIP, TXT.'));
+        cb(new Error('Loại tệp không hợp lệ. Chỉ chấp nhận PDF, DOC, DOCX, PPT, PPTX, ZIP, TXT.'));
     }
 };
 
 const lessonFilter = (req, file, cb) => {
-    const allowed = ['.pdf', '.ppt', '.pptx', '.mp4', '.mov', '.avi', '.mkv', '.zip'];
+    const allowed = ['.pdf', '.ppt', '.pptx', '.mp4', '.mov', '.avi', '.mkv', '.zip', '.doc', '.docx', '.txt'];
     const ext = path.extname(file.originalname).toLowerCase();
     if (allowed.includes(ext)) {
         cb(null, true);
     } else {
-        cb(new multer.MulterError('LIMIT_UNEXPECTED_FILE', 'Loại tệp không hợp lệ. Chấp nhận Video (MP4, MOV, ...) hoặc Slide (PPT, PDF).'));
+        cb(new Error('Loại tệp không hợp lệ. Chấp nhận Video (MP4, MOV, ...), Slide (PPT, PDF) hoặc Văn bản (DOC, DOCX, TXT, ZIP).'));
     }
 };
 
@@ -76,7 +76,7 @@ module.exports = {
         if (err instanceof multer.MulterError) {
             return res.status(400).json({ success: false, error: err.message });
         } else if (err) {
-            return res.status(500).json({ success: false, error: err.message });
+            return res.status(400).json({ success: false, error: err.message });
         }
         next();
     }

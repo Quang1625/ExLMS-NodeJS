@@ -117,6 +117,7 @@ router.get('/', async (req, res, next) => {
                 start_at: m.start_at,
                 end_at: endAt,
                 event_type: 'MEETING',
+                group_id: m.group_id,
                 source: { entity_id: m._id, entity_type: 'MEETING' }
             });
         }

@@ -20,6 +20,14 @@ const meetingSchema = new mongoose.Schema({
         duration_sec: { type: Number, default: 0 },
         is_present: { type: Boolean, default: true }
     }],
+    room_code: { type: String, required: true },
+    access_logs: [{
+        user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        student_code: String,
+        action: { type: String, enum: ['JOIN_SUCCESS', 'JOIN_FAILED', 'LEFT'] },
+        timestamp: { type: Date, default: Date.now },
+        ip_address: String
+    }],
     polls: [{
         _id: { type: mongoose.Schema.Types.ObjectId, auto: true },
         question: { type: String, required: true },

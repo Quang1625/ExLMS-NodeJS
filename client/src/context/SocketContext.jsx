@@ -49,6 +49,11 @@ export function SocketProvider({ children }) {
             window.dispatchEvent(new CustomEvent('new_notification', { detail: data }));
         });
 
+        newSocket.on('NEW_MEETING', (data) => {
+            setUnreadCount(prev => prev + 1);
+            window.dispatchEvent(new CustomEvent('new_notification', { detail: data }));
+        });
+
         setSocket(newSocket);
 
         return () => newSocket.close();
